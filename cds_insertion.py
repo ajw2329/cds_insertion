@@ -685,6 +685,7 @@ def main(args):
 	parser.add_argument("--gtfToGenePred_path", type = str, help = "Path to gtfToGenePred exe", default = "gtfToGenePred")
 	parser.add_argument("--genePredToBigGenePred_path", type = str, help = "Path to genePredToBigGenePred exe", default = "genePredToBigGenePred")
 	parser.add_argument("--bedToBigBed_path", type = str, help = "Path to bedToBigBed exe", default = "bedToBigBed")
+	parser.add_argument("--bedtools_path", type = str, help = "Path to bedtools exe", default = "bedtools")
 	parser.add_argument("--chrNameLength_path", type = str, help = "Path to chrNameLength file")
 	parser.add_argument("--make_bigBed", action = "store_true", help = "If set, will attempt to use Kent utils to output bigbed file from gtfs.  Requires chrNameLength_path and bigGenePred_as_path to be set.  If Kent utils are not in PATH, set the paths to the executables as well.")
 	parser.add_argument("--ptc_dist", type = int, help = "Set minimum PTC distance required for transcript to be considered putative NMD substrate.  default = 55", default = 55)
@@ -706,6 +707,7 @@ def main(args):
 	chrNameLength_path = args.chrNameLength_path
 	make_bigBed = args.make_bigBed
 	ptc_dist = args.ptc_dist
+	bedtools_path = args.bedtools_path
 
 
 	full_transcript_dict = splice_lib.generate_standard_transcript_dict(transcript_gtf)
@@ -736,7 +738,7 @@ def main(args):
 
 	generate_exon_bedfile(full_transcript_dict, output_directory)
 
-	call_bedtools_intersect(output_directory)
+	call_bedtools_intersect(output_directory, bedtools_path)
 
 
 	seek_cds_matches(output_directory, full_transcript_dict, input_cds_dict)

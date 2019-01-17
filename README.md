@@ -15,28 +15,28 @@ usage: cds_insertion.py [-h] --transcript_gtf TRANSCRIPT_GTF
 optional arguments:
   -h, --help            show this help message and exit  
   --transcript_gtf TRANSCRIPT_GTF  
-                        Input transcript gtf filename    
+                        Input transcript gtf filename  
   --transcript_fasta TRANSCRIPT_FASTA  
                         Input transcript fasta (assumes generation with   
-                        gffread)
+                        gffread)  
   --annotation_gtf ANNOTATION_GTF  
                         Input gtf filename that contains CDS (preferably CCDS)
-                        features
+                        features  
   --CCDS                If set, CDS used will be restricted to CCDS.  
   --outdir OUTDIR       Path for output files  
   --bigGenePred_as_path BIGGENEPRED_AS_PATH  
                         Path to bigGenePred.as file
   --gtfToGenePred_path GTFTOGENEPRED_PATH  
-                        Path to gtfToGenePred exe
+                        Path to gtfToGenePred exe  
   --genePredToBigGenePred_path GENEPREDTOBIGGENEPRED_PATH  
-                        Path to genePredToBigGenePred exe
+                        Path to genePredToBigGenePred exe  
   --bedToBigBed_path BEDTOBIGBED_PATH  
-                        Path to bedToBigBed exe
+                        Path to bedToBigBed exe  
   --chrNameLength_path CHRNAMELENGTH_PATH  
-                        Path to chrNameLength file  
+                        Path to chrNameLength file    
   --make_bigBed         If set, will attempt to use Kent utils to output  
                         bigbed file from gtfs. Requires chrNameLength_path and
                         bigGenePred_as_path to be set. If Kent utils are not
-                        in PATH, set the paths to the executables as well.
+                        in PATH, set the paths to the executables as well.  
   --ptc_dist PTC_DIST   Set minimum PTC distance required for transcript to be  
-                        considered putative NMD substrate. default = 55
+                        considered putative NMD substrate. default = 55  

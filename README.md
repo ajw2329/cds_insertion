@@ -10,7 +10,7 @@ Bedtools v>=2.27
 ## Basic usage:
 
 ```
-python /path/to/cds\_insertion.py --transcript\_gtf /path/to/raw/transcriptome.gtf --transcript\_fasta /path/to/raw/transcriptome.fa --annotation\_gtf /path/to/cds\_annotated\_transcriptome.gtf --outdir /path/to/output/`
+python2.7 /path/to/cds_insertion.py --transcript_gtf /path/to/raw/transcriptome.gtf --transcript_fasta /path/to/raw/transcriptome.fa --annotation_gtf /path/to/cds_annotated_transcriptome.gtf --outdir /path/to/output/`
 ```
 
 Note that this assumes that bedtools is in your PATH. The location of the bedtools executable can be made explicit by adding `--bedtools\_path /path/to/bedtools`
@@ -20,7 +20,7 @@ Note that this assumes that bedtools is in your PATH. The location of the bedtoo
 The `--CCDS` flag will require that annotation CDS entries contain the text "CCDS".  This is intended for use with a GENCODE annotation GTF, and will have the affect of using only start codons from consensus CDS features (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5753299/).
 
 ```
-python /path/to/cds\_insertion.py --transcript\_gtf /path/to/raw/transcriptome.gtf --transcript\_fasta /path/to/raw/transcriptome.fa --annotation\_gtf /path/to/cds\_annotated\_transcriptome.gtf --outdir /path/to/output/ --CCDS`
+python2.7 /path/to/cds_insertion.py --transcript_gtf /path/to/raw/transcriptome.gtf --transcript_fasta /path/to/raw/transcriptome.fa --annotation_gtf /path/to/cds_annotated_transcriptome.gtf --outdir /path/to/output/ --CCDS`
 ```
 
 ## bigGenePred generation
@@ -30,7 +30,7 @@ By default cds\_insertion will output new GTF files with CDS entries, but for so
 The bigGenePred generation can be achieved (alongside the normal output) as follows:
 
 ```
-python2.7 /path/to/cds\_insertion.py --transcript\_gtf /path/to/raw/transcriptome.gtf --transcript\_fasta /path/to/raw/transcriptome.fa --annotation\_gtf /path/to/cds\_annotated\_transcriptome.gtf --outdir /path/to/output/ --make\_bigBed --bigGenePred\_as\_path /path/to/bigGenePred.as --chrNameLength\_path /path/to/chrNameLength.txt`
+python2.7 /path/to/cds_insertion.py --transcript_gtf /path/to/raw/transcriptome.gtf --transcript_fasta /path/to/raw/transcriptome.fa --annotation_gtf /path/to/cds_annotated_transcriptome.gtf --outdir /path/to/output/ --make_bigBed --bigGenePred_as_path /path/to/bigGenePred.as --chrNameLength_path /path/to/chrNameLength.txt`
 ```
 
 Note that paths to the UCSC executables can be made explicit using `--gtfToGenePred\_path` and equivalent for the rest.

@@ -434,6 +434,57 @@ def find_exons_unique_to_form_lists(included_exons, excluded_exons):
     return included_unique, excluded_unique
 
 
+def get_alt_regions(included_exons, excluded_exons, included_unique, excluded_unique):
+
+    def expand_to_set(exon_list):
+
+        value_list = []
+
+        for exon in exon_list:
+
+            value_list.extend(range(exon[0], exon[1] + 1))
+
+        return set(value_list)
+
+    included_unique_exon_vals = expand_to_set(included_unique)
+    excluded_unique_exon_vals = expand_to_set(excluded_unique)
+    included_exon_vals = expand_to_set(included_exons)
+    excluded_exon_vals = expand_to_set(excluded_exons)
+
+    included_unique_vals = sorted(list(included_unique_exon_vals.difference(excluded_exon_vals)))
+    excluded_unique_vals = sorted(list(excluded_unique_exon_vals.difference(included_exon_vals)))
+
+    def summarize_as_regions(val_list):
+
+        region_list = []
+
+        if len(val_list) == 0:
+
+            return region_list
+
+        initial_value = val_list[0]
+
+        for index, i in enumerate(val_list):
+
+            if index != len(val_list) - 1 and val_list[index + 1] != i + 1:
+
+                region_list += [initial_value, i]
+                initial_value = val_list[index + 1]
+
+        else:
+            region_list += [initial_value, val_list[-1]]
+
+        return region_list
+
+    included_unique_regions = summarize_as_regions(included_unique_vals)
+    excluded_unique_regions = summarize_as_regions(excluded_unique_vals)
+
+    return (included_unique_regions, excluded_unique_regions)
+
+
+
+
+
 
 def get_exon_overlapping_ei_junctions_list(included_exons, excluded_exons):
 

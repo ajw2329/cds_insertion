@@ -8,7 +8,7 @@ import copy
 import re
 import subprocess
 import glob
-import pickle
+import cPickle as pkl
 
 
 stop_codons = ["TAG", "TAA", "TGA"]
@@ -760,6 +760,9 @@ def main(args):
 			make_bb_file("cds_inserted_no_ptc", bigGenePred_as_path, chrNameLength_path, output_directory, gtfToGenePred_exe = gtfToGenePred_path, genePredToBigGenePred_exe = genePredToBigGenePred_path, bedToBigBed_exe = bedToBigBed_path)
 			make_bb_file("cds_inserted_ptc", bigGenePred_as_path, chrNameLength_path, output_directory, gtfToGenePred_exe = gtfToGenePred_path, genePredToBigGenePred_exe = genePredToBigGenePred_path, bedToBigBed_exe = bedToBigBed_path)
 			make_bb_file("cds_inserted_nonstop", bigGenePred_as_path, chrNameLength_path, output_directory, gtfToGenePred_exe = gtfToGenePred_path, genePredToBigGenePred_exe = genePredToBigGenePred_path, bedToBigBed_exe = bedToBigBed_path)
+
+	pkl.dump(full_transcript_dict, open(output_directory + "/cds_insertion_transcript_dict.pkl", "wb"))
+
 
 	return full_transcript_dict
 

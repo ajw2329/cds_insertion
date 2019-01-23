@@ -468,11 +468,11 @@ def get_alt_regions(included_exons, excluded_exons, included_unique, excluded_un
 
             if index != len(val_list) - 1 and val_list[index + 1] != i + 1:
 
-                region_list += [initial_value, i]
+                region_list += [[initial_value, i]]
                 initial_value = val_list[index + 1]
 
         else:
-            region_list += [initial_value, val_list[-1]]
+            region_list += [[initial_value, val_list[-1]]]
 
         return region_list
 

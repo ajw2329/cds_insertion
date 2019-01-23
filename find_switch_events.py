@@ -128,7 +128,7 @@ def event_nmd_nsd_status(standard_event_dict, standard_transcript_dict):
 
 				for cds in standard_transcript_dict[transcript]["CDS"]:
 
-					if splice_lib.position_contained(standard_event_dict[event]["included_alt_regions"], standard_transcript_dict[transcript]["CDS"][cds]["stop_codon"][0])[0] or splice_lib.position_contained(standard_event_dict[event]["included_alt_regions"], standard_transcript_dict[transcript]["CDS"][cds]["stop_codon"][1])[0]:
+					if splice_lib.position_contained(standard_event_dict[event][nmd_form + "_alt_regions"], standard_transcript_dict[transcript]["CDS"][cds]["stop_codon"][0][0])[0] or splice_lib.position_contained(standard_event_dict[event][nmd_form + "_alt_regions"], standard_transcript_dict[transcript]["CDS"][cds]["stop_codon"][-1][-1])[0]:
 
 						ptc_overlap.append(True)
 
@@ -214,9 +214,6 @@ def add_transcripts_to_event_dict(ioe_file, standard_event_dict):
 		Creates pseudo event and transcript dicts to run event_nmd_nsd_status and output_table functions without having passed the full dicts as input to main.  Useful if running script as standalone.
 	'''
 
-	standard_event_dict = {}
-	standard_transcript_dict = {}
-
 	with open(ioe_file, 'r') as file:
 
 		next(file)
@@ -260,6 +257,15 @@ def main(args, standard_transcript_dict = None, standard_event_dict = None):
 
 		standard_event_dict = splice_lib.generate_standard_event_dict(event_gtf)
 		add_transcripts_to_event_dict(ioe_file, standard_event_dict)
+
+		splice_lib.find_exons_unique_to_form(standard_event_dict)
+
+		for event in standard_event_dict:
+
+			standard_event_dict[event]["included_alt_regions"], standard_event_dict[event]["excluded_alt_regions"] = splice_lib.get_alt_regions(standard_event_dict[event]["included_exons"], standard_event_dict[event]["excluded_exons"], standard_event_dict[event]["included_unique_exons"], standard_event_dict[event]["excluded_unique_exons"])
+
+
+
 
 	else:
 

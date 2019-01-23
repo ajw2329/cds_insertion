@@ -70,7 +70,7 @@ def add_included_RI_MR(standard_transcript_dict, standard_event_dict, exon_index
 
 		if standard_event_dict[event]["event_type"] in ["MR", "RI"]:
 
-			query_key = standard_event_dict[event]["chrom"] + "_" + standard_event_dict[event]["included_exons"][0][0] + "_" + standard_event_dict[event]["included_exons"][-1][-1] + "_" + standard_event_dict[event]["strand"]
+			query_key = standard_event_dict[event]["chrom"] + "_" + str(standard_event_dict[event]["included_exons"][0][0]) + "_" + str(standard_event_dict[event]["included_exons"][-1][-1]) + "_" + standard_event_dict[event]["strand"]
 
 			if query_key in exon_indexed_transcript_dict:
 
@@ -137,6 +137,8 @@ def main():
 	transcript_junction_dict = splice_lib.index_transcripts_by_junctions(standard_transcript_dict)
 
 	add_events_to_transcripts(standard_transcript_dict, standard_event_dict, transcript_junction_dict)
+
+	add_included_RI_MR(standard_transcript_dict, standard_event_dict, exon_indexed_transcript_dict, outdir)
 
 	output_IOE(standard_event_dict, standard_transcript_dict, outdir, prefix)
 

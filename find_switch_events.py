@@ -110,6 +110,16 @@ def event_nmd_nsd_status(standard_event_dict, standard_transcript_dict):
 
 			ambiguous_nonstop = True
 
+
+		if len(standard_event_dict[event]["included_form_transcripts"]) == 0 or len(standard_event_dict[event]["excluded_form_transcripts"]) == 0:
+
+			always_nmd = False
+			sometimes_nmd = False
+			ambiguous_nmd = False
+			always_nonstop = False
+			sometimes_nonstop = False
+			ambiguous_nonstop = False
+
 		standard_event_dict[event]["always_nmd"] = always_nmd
 		standard_event_dict[event]["sometimes_nmd"] = sometimes_nmd
 		standard_event_dict[event]["ambiguous_nmd"] = ambiguous_nmd
@@ -157,6 +167,10 @@ def event_nmd_nsd_status(standard_event_dict, standard_transcript_dict):
 def output_table(standard_event_dict, outdir):
 
 	output_table = open(outdir + "/event_nmd_nsd_status.tsv", 'w')
+
+	header_content = ["event_id", "nmd_status", "nmd_form", "ptc_overlap", "nonstop_status", "nonstop_form"]
+
+	output_table.write("\t".join(header_content) + "\n")
 
 	for event in standard_event_dict:
 

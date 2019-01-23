@@ -174,11 +174,11 @@ def output_table(standard_event_dict, outdir):
 
 	for event in standard_event_dict:
 
-		nmd_field = "NA"
+		nmd_field = "never_nmd"
 		nmd_form = "NA"
 		ptc_overlap = "NA"
 
-		nonstop_field = "NA"
+		nonstop_field = "never_nsd"
 		nonstop_form = "NA"
 
 		if standard_event_dict[event]["always_nmd"]:

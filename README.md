@@ -80,3 +80,30 @@ optional arguments:
                         in PATH, set the paths to the executables as well.  
   --ptc_dist PTC_DIST   Set minimum PTC distance required for transcript to be  
                         considered putative NMD substrate. default = 55  
+
+
+# find_switch_events
+
+find\_switch\_events is intended to identify alternative splicing events that switch between putative NMD or NSD substrates and non-substrates.
+
+## Help statement
+
+usage: find_switch_events.py [-h] [--suppress_output] [--outdir OUTDIR]  
+                             [--ioe_file IOE_FILE] [--event_gtf EVENT_GTF]  
+                             [--transcript_dict_pkl TRANSCRIPT_DICT_PKL]  
+  
+optional arguments:  
+  -h, --help            show this help message and exit  
+  --suppress_output     If set, not file will be output  
+  --outdir OUTDIR       Output directory  
+  --ioe_file IOE_FILE   Event ioe file  
+  --event_gtf EVENT_GTF  
+                        Event gtf file - required for certain features to work  
+                        e.g. PTC overlap determination if standard_event_dict  
+                        not supplied as argument to main()  
+  --transcript_dict_pkl TRANSCRIPT_DICT_PKL  
+                        Pickled transcript dict from cds_insertion.py.  
+                        Required for certain features to work e.g. PTC overlap  
+                        determinatino if standard_transcript_dict not supplied  
+                        as argument to main()  
+  

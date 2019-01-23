@@ -1,5 +1,6 @@
 import argparse
 import sys
+import splice_lib
 
 
 def string_bool(string):
@@ -119,6 +120,39 @@ def event_nmd_nsd_status(standard_event_dict, standard_transcript_dict):
 		standard_event_dict[event]["nmd_form"] = nmd_form
 		standard_event_dict[event]["nonstop_form"] = nonstop_form
 
+		ptc_overlap = []
+
+		if always_nmd:
+
+			for transcript in standard_event_dict[event][nmd_form + "_form_transcripts"]:
+
+				for cds in standard_transcript_dict[transcript]["CDS"]:
+
+					if splice_lib.position_contained(standard_event_dict[event]["included_alt_regions"], standard_transcript_dict[transcript]["CDS"][cds]["stop_codon"][0])[0] or splice_lib.position_contained(standard_event_dict[event]["included_alt_regions"], standard_transcript_dict[transcript]["CDS"][cds]["stop_codon"][1])[0]:
+
+						ptc_overlap.append(True)
+
+					else:
+
+						ptc_overlap.append(False)
+
+		if len(ptc_overlap) > 0:
+
+			if all(ptc_overlap):
+
+				standard_event_dict[event]["ptc_overlap"] = True
+
+			else:
+
+				standard_event_dict[event]["ptc_overlap"] = False
+
+		elif always_nmd:
+
+			sys.exit("There is a problem in event_nmd_nsd_status(): ptc_overlap determination was not successful for an always_nmd event.")
+
+		else:
+
+			standard_event_dict[event]["ptc_overlap"] = "NA"
 
 def output_table(standard_event_dict, outdir):
 
@@ -128,6 +162,7 @@ def output_table(standard_event_dict, outdir):
 
 		nmd_field = "NA"
 		nmd_form = "NA"
+		ptc_overlap = "NA"
 
 		nonstop_field = "NA"
 		nonstop_form = "NA"
@@ -136,6 +171,14 @@ def output_table(standard_event_dict, outdir):
 
 			nmd_field = "always_nmd"
 			nmd_form = standard_event_dict[event]["nmd_form"]
+
+			if standard_event_dict[event]["ptc_overlap"]:
+
+				ptc_overlap = "TRUE"
+
+			else:
+
+				ptc_overlap = "FALSE"
 
 		elif standard_event_dict[event]["sometimes_nmd"]:
 
@@ -161,11 +204,11 @@ def output_table(standard_event_dict, outdir):
 
 			nonstop_field = "ambiguous_nonstop"
 
-		output_table.write("\t".join([event, nmd_field, nmd_form, nonstop_field, nonstop_form]) + "\n")
+		output_table.write("\t".join([event, nmd_field, nmd_form, ptc_overlap, nonstop_field, nonstop_form]) + "\n")
 
 	output_table.close()
 
-def construct_pseudo_dicts(ioe_file, transcript_table):
+def add_transcripts_to_event_dict(ioe_file, standard_event_dict):
 
 	'''
 		Creates pseudo event and transcript dicts to run event_nmd_nsd_status and output_table functions without having passed the full dicts as input to main.  Useful if running script as standalone.
@@ -187,25 +230,9 @@ def construct_pseudo_dicts(ioe_file, transcript_table):
 			all_transcripts = entry[4].split(",")
 			excluded_form_transcripts = list(set(all_transcripts) - set(included_form_transcripts))
 
-			standard_event_dict[event] = {"included_form_transcripts": list(included_form_transcripts), "excluded_form_transcripts": list(excluded_form_transcripts)}
+			standard_event_dict[event]["included_form_transcripts"] = list(included_form_transcripts) 
+			standard_event_dict[event]["excluded_form_transcripts"] = list(excluded_form_transcripts)
 
-	with open(transcript_table) as file:
-
-		next(file)
-
-		for line in file:
-
-			entry = line.strip().split()
-			transcript = entry[1]
-			always_nmd = entry[4]
-			sometimes_nmd = entry[5]
-			always_nonstop = entry[6]
-			sometimes_nonstop = entry[7]
-
-			standard_transcript_dict[transcript] = {"always_nmd": always_nmd, "sometimes_nmd": sometimes_nmd, "always_nonstop": always_nonstop, "sometimes_nonstop": sometimes_nonstop}
-
-
-	return standard_event_dict, standard_transcript_dict
 
 
 def main(args, standard_transcript_dict = None, standard_event_dict = None):
@@ -215,7 +242,9 @@ def main(args, standard_transcript_dict = None, standard_event_dict = None):
 	parser.add_argument("--suppress_output", action = "store_true", help = "If set, not file will be output")
 	parser.add_argument("--outdir", type = str, help = "Output directory")
 	parser.add_argument("--ioe_file", type = str, help = "Event ioe file")
-	parser.add_argument("--transcript_table", type = str, help = "Table of transcript characteristics output by cds_insertion.py")
+	#parser.add_argument("--transcript_table", type = str, help = "Table of transcript characteristics output by cds_insertion.py")
+	parser.add_argument("--event_gtf", type = str, help = "Event gtf file - required for certain features to work e.g. PTC overlap determination if standard_event_dict not supplied as argument to main()")
+	parser.add_argument("--transcript_dict_pkl", type = str, help = "Pickled transcript dict from cds_insertion.py.  Required for certain features to work e.g. PTC overlap determinatino if standard_transcript_dict not supplied as argument to main()")
 
 	args = parser.parse_args(args)
 
@@ -223,11 +252,27 @@ def main(args, standard_transcript_dict = None, standard_event_dict = None):
 	suppress_output = args.suppress_output
 	outdir = args.outdir
 	ioe_file = args.ioe_file
-	transcript_table = args.transcript_table
+	#transcript_table = args.transcript_table
+	event_gtf = args.event_gtf
+	transcript_dict_pkl = args.transcript_dict_pkl 
 
-	if ioe_file is not None and transcript_table is not None:
+	if standard_event_dict is None and event_gtf is not None:
 
-		standard_event_dict, standard_transcript_dict = construct_pseudo_dicts(ioe_file, transcript_table)
+		standard_event_dict = splice_lib.generate_standard_event_dict(event_gtf)
+		add_transcripts_to_event_dict(ioe_file, standard_event_dict)
+
+	else:
+
+		sys.exit("Please supply either standard_event_dict as argument to find_switch_events main, or supply path to --event_gtf.  Supplying both is not an option (it is confusing!)")
+
+	if standard_transcript_dict is None and transcript_dict_pkl is not None:
+
+		import cPickle as pkl
+		standard_transcript_dict = pkl.load(open(transcript_dict_pkl, "rb"))
+
+	else:
+
+		sys.exit("Please supply either standard_transcript_dict as arg to main() or supply path to --transcript_dict_pkl (not both)")
 
 
 	if not suppress_output and outdir is None:

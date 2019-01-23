@@ -23,6 +23,43 @@ The `--CCDS` flag will require that annotation CDS entries contain the text "CCD
 python2.7 /path/to/cds_insertion.py --transcript_gtf /path/to/raw/transcriptome.gtf --transcript_fasta /path/to/raw/transcriptome.fa --annotation_gtf /path/to/cds_annotated_transcriptome.gtf --outdir /path/to/output/ --CCDS`
 ```
 
+## Primary output files
+
+### transcript_characteristics.tsv
+
+This file provides basic transcript CDS information such as number of putative CDS, whether any truncated CDS are found (start codon with no in-frame stop), whether or not the transcript is a putative NMD substrate (based on max PTC distance >= 55nt), CDS lengths, UTR lengths, etc.
+
+Here is an example of the file with field descriptions to follow:
+
+| gene        | transcript_id | normal_cds_count | nonstop_cds_count | always_nmd | sometimes_nmd | always_nonstop | sometimes_nonstop | PTC_distances | max_downstream_PTC_distances | CDS_lengths | five_utr_lengths | three_utr_lengths | three_utr_junction_counts | junction_contained_three_utr_lengths |
+|-------------|---------------|------------------|-------------------|------------|---------------|----------------|-------------------|---------------|------------------------------|-------------|------------------|-------------------|---------------------------|--------------------------------------|
+| ZNF746      | MSTRG.24752.1 | 1                | 0                 | FALSE      | FALSE         | FALSE          | FALSE             | 0             | 0                            | 1935        | 271              | 1591              | 0                         | 0                                    |
+| ZNF746      | MSTRG.24752.2 | 1                | 0                 | FALSE      | FALSE         | FALSE          | FALSE             | 0             | 0                            | 1980        | 271              | 1591              | 0                         | 0                                    |
+| ZNF746      | MSTRG.24752.3 | 1                | 0                 | FALSE      | FALSE         | FALSE          | FALSE             | 0             | 0                            | 1977        | 271              | 1591              | 0                         | 0                                    |
+| MSTRG.22509 | MSTRG.22509.1 | 0                | 0                 | FALSE      | FALSE         | FALSE          | FALSE             | NA            | NA                           | NA          | NA               | NA                | NA                        | NA                                   |
+| MSTRG.28358 | MSTRG.28358.1 | 0                | 0                 | FALSE      | FALSE         | FALSE          | FALSE             | NA            | NA                           | NA          | NA               | NA                | NA                        | NA                                   |
+| MSTRG.18752 | MSTRG.18752.1 | 0                | 0                 | FALSE      | FALSE         | FALSE          | FALSE             | NA            | NA                           | NA          | NA               | NA                | NA                        | NA                                   |
+| MSTRG.11041 | MSTRG.11041.1 | 0                | 0                 | FALSE      | FALSE         | FALSE          | FALSE             | NA            | NA                           | NA          | NA               | NA                | NA                        | NA                                   |
+| RGS5        | MSTRG.1910.1  | 2                | 0                 | FALSE      | FALSE         | FALSE          | FALSE             | 0,0           | 0,0                          | 219543      | 602278           | 5041,5041         | 0,0                       | 0,0                                  |
+| KRCC1       | MSTRG.14117.1 | 1                | 0                 | FALSE      | FALSE         | FALSE          | FALSE             | 0             | 0                            | 777         | 525              | 582               | 0                         | 0                                    |
+
+`gene` (string): gene symbol  
+`transcript_id` (string): transcript id  
+`normal_cds_count` (integer): number of "normal" (i.e. terminating in a stop codon rather than the end of the transcript) CDS found by translating overlapping annotated start codons  
+`nonstop_cds_count` (integer): number of "nonstop" (i.e. terminating in the end of the transcript rather than a stop codon) CDS found by translating overlapping annotated start codons  
+`always_nmd` (logical): TRUE/FALSE indicating whether the transcript contains a putative PTC with max distance >= 55 nt when translated from ALL overlapping annotated start codons  
+`sometimes_nmd` (logical): TRUE/FALSE indicating whether the transcript contains a putative PTC with max distance >= 55 nt when translated ANY overlapping annotated start codons (note that any transcript that is "always\_nmd" is necessarily also "sometimes\_nmd"  
+`always_nonstop` (logical): TRUE/FALSE indicating whether the ALL CDS generated by translating overlapping annotated start codons lack a stop codon (i.e. terminate at the 3'-end of the transcript)  
+`sometimes_nonstop` (logical): TRUE/FALSE indicating whether ANY CDS generated by translating overlapping annotated start codons lack a stop codon (note that "always\_nonstop" transcripts are necessarily also "sometimes\_nonstop")  
+`PTC_distances` (string containing comma-separated list of integers): distance of the putative PTC (if applicable) to the nearest downstream exon-exon junction. If there is more than one PTC (due to more than one CDS), all PTC distances are represented in a comma-separated list. Note also that non-PTC containing transcripts will have "0" in this field. In future iterations this may be changed to "NA".  
+`max_downstream_PTC_distances` (string containing comma-separated list of integers): distance of the putative PTC (if applicable) to the farthest downstream exon-exon junction. Note that these values are important because a PTC (for example) only 3 nt upsream of the nearest exon-exon junction may still satistfy NMD criteria if the farthest downstream exon-exon junction is >= 55 nt away. Even if the ribosome displaces the proximal EJC the remaining downstream EJC(s) may still aid in recruitment of NMD machinery. If there is more than one PTC (due to more than one CDS), all PTC distances are represented in a comma-separated list. Note also that non-PTC containing transcripts will have "0" in this field. In future iterations this may be changed to "NA".  
+`CDS_lengths` (string - comma separated list of integers): lengths of CDS found by translating overlapping annotated start codons  
+`five_utr_lengths` (string - comma separated list of integers): lengths of 5'-UTRs resulting from CDS found by translating overlapping annotated start codons  
+`three_utr_lengths` (string - comma separated list of integers): lengths of 3'-UTRs resulting from CDS found by translating overlapping annotated start codons  
+`three_utr_junction_counts` (string - comma separated list of integers): Number of exon-exon junctions in the 3'-UTR(s)  
+`junction_countained_three_utr_lengths` (string - comma separated list of integers): length of 3'-UTR up until the final exon-exon junction. This is equivalent to `max_downstream_PTC_distances` and will likely be removed in future versions  
+
+
 ## bigGenePred generation
 
 By default cds\_insertion will output new GTF files with CDS entries, but for some visualization purposes it is nice to have bigGenePred files, which allow individual codon coloring when viewed on the UCSC genome browser. Generating the bigGenePred files requires the following UCSC utilities (by Jim Kent): `bigGenePred`, `gtfToGenePred`, `bedToBigBed`, and `genePredToBigGenePred`. These are available for linux and MacOS here: http://hgdownload.soe.ucsc.edu/admin/exe/. Provided those utilities are available in your `PATH`, the only necessary modifications to the above command are `--make\_bigBed`, `--bigGenePred\_as_path /path/to/bigGenePred.as` and `--chrNameLength_path /path/to/chrNameLength.txt`.  The `chrNameLength.txt` file is just a two-column tsv containing chromosome name in the first column and chromosome length in the second. Note that this is just the first two columns of a `.fai` file such as is generated by `samtools faidx`.  The `bigGenePred.as` file can be downloaded here: https://genome.ucsc.edu/goldenpath/help/bigGenePred.html.  

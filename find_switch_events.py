@@ -56,14 +56,16 @@ def event_nmd_nsd_status(standard_event_dict, standard_transcript_dict):
 		nmd_form = "NA"
 		nonstop_form = "NA"
 
+		###IMPORTANT NOTE: in python2.7, all([]) == True, while any([]) == False (WHY?!!)
 
-		if all(included_always_nmd) and not any(excluded_sometimes_nmd):
+
+		if all(included_always_nmd) and len(included_always_nmd) > 0 and not any(excluded_sometimes_nmd):
 
 			always_nmd = True
 			sometimes_nmd = True
 			nmd_form = "included"
 
-		elif all(excluded_always_nmd) and not any(included_sometimes_nmd):
+		elif all(excluded_always_nmd) and len(excluded_always_nmd) > 0 and not any(included_sometimes_nmd):
 
 			always_nmd = True
 			sometimes_nmd = True
@@ -84,13 +86,13 @@ def event_nmd_nsd_status(standard_event_dict, standard_transcript_dict):
 			ambiguous_nmd = True
 
 
-		if all(included_always_nonstop) and not any(excluded_sometimes_nonstop):
+		if all(included_always_nonstop) and len(included_always_nonstop) > 0 and not any(excluded_sometimes_nonstop):
 
 			always_nonstop = True
 			sometimes_nonstop = True
 			nonstop_form = "included"
 
-		elif all(excluded_always_nonstop) and not any(included_sometimes_nonstop):
+		elif all(excluded_always_nonstop) and len(excluded_always_nonstop) > 0 and not any(included_sometimes_nonstop):
 
 			always_nonstop = True
 			sometimes_nonstop = True

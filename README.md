@@ -184,14 +184,14 @@ python2.7 generateIOE.py --transcript_gtf /path/to/transcriptome.gtf --event_gtf
 
 | event_id                                      | nmd_status | nmd_form | ptc_overlap | nonstop_status | nonstop_form |
 |-----------------------------------------------|------------|----------|-------------|----------------|--------------|
-| human_chimpanzee_orangutan_macaque|A5.0060093 | never_nmd  | NA       | NA          | never_nsd      | NA           |
-| human_chimpanzee_orangutan_macaque|RI.0044820 | never_nmd  | NA       | NA          | never_nsd      | NA           |
-| human_chimpanzee_orangutan_macaque|SE.0023738 | never_nmd  | NA       | NA          | never_nsd      | NA           |
-| human_chimpanzee_orangutan_macaque|A3.0022901 | always_nmd | excluded | FALSE       | never_nsd      | NA           |
-| human_chimpanzee_orangutan_macaque|RI.0077570 | never_nmd  | NA       | NA          | never_nsd      | NA           |
-| human_chimpanzee_orangutan|RI.0036360         | never_nmd  | NA       | NA          | never_nsd      | NA           |
-| human_chimpanzee_orangutan_macaque|SE.0023125 | never_nmd  | NA       | NA          | never_nsd      | NA           |
-| human_chimpanzee_orangutan_macaque|SE.0059404 | always_nmd | included | TRUE        | never_nsd      | NA           |
+| human_chimpanzee_orangutan_macaque\|A5.0060093 | never_nmd  | NA       | NA          | never_nsd      | NA           |
+| human_chimpanzee_orangutan_macaque\|RI.0044820 | never_nmd  | NA       | NA          | never_nsd      | NA           |
+| human_chimpanzee_orangutan_macaque\|SE.0023738 | never_nmd  | NA       | NA          | never_nsd      | NA           |
+| human_chimpanzee_orangutan_macaque\|A3.0022901 | always_nmd | excluded | FALSE       | never_nsd      | NA           |
+| human_chimpanzee_orangutan_macaque\|RI.0077570 | never_nmd  | NA       | NA          | never_nsd      | NA           |
+| human_chimpanzee_orangutan\|RI.0036360         | never_nmd  | NA       | NA          | never_nsd      | NA           |
+| human_chimpanzee_orangutan_macaque\|SE.0023125 | never_nmd  | NA       | NA          | never_nsd      | NA           |
+| human_chimpanzee_orangutan_macaque\|SE.0059404 | always_nmd | included | TRUE        | never_nsd      | NA           |
 
 
 `event_id` (string): unique identifier for each alt splicing event  

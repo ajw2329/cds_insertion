@@ -80,7 +80,7 @@ The bigGenePred generation can be achieved (alongside the normal output) as foll
 python2.7 /path/to/cds_insertion.py --transcript_gtf /path/to/raw/transcriptome.gtf --transcript_fasta /path/to/raw/transcriptome.fa --annotation_gtf /path/to/cds_annotated_transcriptome.gtf --outdir /path/to/output/ --make_bigBed --bigGenePred_as_path /path/to/bigGenePred.as --chrNameLength_path /path/to/chrNameLength.txt`
 ```
 
-Note that paths to the UCSC executables can be made explicit using `--gtfToGenePred\_path` and equivalent for the rest.
+Note that paths to the UCSC executables can be made explicit using `--gtfToGenePred_path` and equivalent for the rest.
 
 
 

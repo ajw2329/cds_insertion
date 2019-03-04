@@ -709,6 +709,7 @@ def main(args):
 	ptc_dist = args.ptc_dist
 	bedtools_path = args.bedtools_path
 
+	subprocess.call("mkdir -p " + args.output_directory, shell = True)
 
 	full_transcript_dict = splice_lib.generate_standard_transcript_dict(transcript_gtf)
 	splice_lib.sort_transcript_dict_exons(full_transcript_dict)

@@ -1,3 +1,6 @@
+#STAR_2.6.1c_2018-10-30
+#stringtie 1.3.4d
+
 topdir=/public/groups/sanfordlab/people/anjowall/projects/nmd_validation/
 script_dir=$topdir/scripts/
 util_dir=/public/groups/sanfordlab/people/anjowall/bin/

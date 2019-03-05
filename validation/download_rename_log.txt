@@ -1,0 +1,56 @@
+wget https://www.encodeproject.org/files/ENCFF262ABF/@@download/ENCFF262ABF.fastq.gz > stdout.txt 2> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF458YEY/@@download/ENCFF458YEY.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF399ZJQ/@@download/ENCFF399ZJQ.fastq.gz >> stdout.txt 2>> stderr.tx &
+wget https://www.encodeproject.org/files/ENCFF406XHI/@@download/ENCFF406XHI.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF361BPK/@@download/ENCFF361BPK.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF826EEI/@@download/ENCFF826EEI.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF605WBD/@@download/ENCFF605WBD.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF508COB/@@download/ENCFF508COB.fastq.gz >> stdout.txt 2>> stderr.txt &
+
+
+mv ENCFF262ABF.fastq.gz shupf1_1.fastq.gz
+mv shupf1_1.fastq.gz shupf1a_1.fastq.gz 
+mv ENCFF458YEY.fastq.gz shupf1a_2.fastq.gz 
+mv ENCFF399ZJQ.fastq.gz shupf1b_1.fastq.gz
+mv ENCFF406XHI.fastq.gz shupf1b_2.fastq.gz 
+mv ENCFF361BPK.fastq.gz shctrlupf1a_1.fastq.gz
+mv ENCFF826EEI.fastq.gz shctrlupf1a_2.fastq.gz
+mv ENCFF605WBD.fastq.gz shctrlupf1b_1.fastq.gz
+mv ENCFF508COB.fastq.gz shctrlupf1b_2.fastq.gz
+
+wget https://www.encodeproject.org/files/ENCFF892SIK/@@download/ENCFF892SIK.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF941MVX/@@download/ENCFF941MVX.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF186PXP/@@download/ENCFF186PXP.fastq.gz >> stdout.txt 2>> stderr.txt & 
+wget https://www.encodeproject.org/files/ENCFF949APM/@@download/ENCFF949APM.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF845QQB/@@download/ENCFF845QQB.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF034YJI/@@download/ENCFF034YJI.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF292YLK/@@download/ENCFF292YLK.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF629XES/@@download/ENCFF629XES.fastq.gz >> stdout.txt 2>> stderr.txt &
+
+mv ENCFF892SIK.fastq.gz shupf2a_1.fastq.gz 
+mv ENCFF941MVX.fastq.gz shupf2a_2.fastq.gz 
+mv ENCFF186PXP.fastq.gz shupf2b_1.fastq.gz
+mv ENCFF949APM.fastq.gz shupf2b_2.fastq.gz 
+mv ENCFF845QQB.fastq.gz shctrlupf2a_1.fastq.gz
+mv ENCFF034YJI.fastq.gz shctrlupf2a_2.fastq.gz 
+mv ENCFF292YLK.fastq.gz shctrlupf2b_1.fastq.gz 
+mv ENCFF629XES.fastq.gz shctrlupf2b_2.fastq.gz 
+
+wget https://www.encodeproject.org/files/ENCFF305MOO/@@download/ENCFF305MOO.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF229CHG/@@download/ENCFF229CHG.fastq.gz >> stdout.txt 2>> stderr.txt 
+wget https://www.encodeproject.org/files/ENCFF940CVA/@@download/ENCFF940CVA.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF994CYS/@@download/ENCFF994CYS.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF726LTF/@@download/ENCFF726LTF.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF569YVH/@@download/ENCFF569YVH.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF891EGO/@@download/ENCFF891EGO.fastq.gz >> stdout.txt 2>> stderr.txt &
+wget https://www.encodeproject.org/files/ENCFF667EXM/@@download/ENCFF667EXM.fastq.gz >> stdout.txt 2>> stderr.txt 
+
+mv ENCFF305MOO.fastq.gz shsrsf1a_1.fastq.gz
+mv ENCFF229CHG.fastq.gz shsrsf1a_2.fastq.gz
+mv ENCFF940CVA.fastq.gz shsrsf1b_1.fastq.gz
+mv ENCFF994CYS.fastq.gz shsrsf1b_2.fastq.gz 
+mv ENCFF726LTF.fastq.gz shctrlsrsf1a_1.fastq.gz
+mv ENCFF569YVH.fastq.gz shctrlsrsf1a_2.fastq.gz
+mv ENCFF891EGO.fastq.gz shctrlsrsf1b_2.fastq.gz
+mv shctrlsrsf1b_2.fastq.gz shctrlsrsf1b_1.fastq.gz
+mv ENCFF667EXM.fastq.gz shctrlsrsf1b_2.fastq.gz

@@ -1,0 +1,184 @@
+---
+title: "Untitled"
+author: "Andrew Wallace"
+date: "February 26, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+```{r}
+
+sample_info <- read.table("/home/andrew/projects/rnaseq_tools/cds_insertion/validation/sample_info.tsv",
+                          sep = "\t",
+                          stringsAsFactors = FALSE,
+                          header = TRUE)
+
+
+all_counts <- read.table("/home/andrew/projects/rnaseq_tools/cds_insertion/validation/all_junctioncounts.tsv",
+                         sep = "\t",
+                         stringsAsFactors = FALSE,
+                         header = TRUE) %>% 
+  left_join(sample_info, by = "sample_name")
+
+nmd_nsd_status <- read.table("/home/andrew/projects/rnaseq_tools/cds_insertion/validation/event_nmd_nsd_status.tsv",
+                         sep = "\t",
+                         stringsAsFactors = FALSE,
+                         header = TRUE)
+
+```
+
+
+```{r}
+
+events_full_span <- all_counts %>% 
+                      mutate(min_jc_row = pmap_dbl(list(x = min_IJC, y = min_SJC), function(x,y) max(x,y))) %>%
+                      group_by(event_id,condition) %>% 
+                      summarize(min_PSI_lo = min(PSI_lo), max_PSI_hi = max(PSI_hi), min_jc_condition = min(min_jc_row)) %>% 
+                      ungroup()
+
+
+all_condition_dpsi_df_list <- list()
+
+ for (comparison in str_split(c("shctrlsrsf1,shsrsf1","shctrlupf1,shupf1", "shctrlupf2,shupf2"), pattern = ",")) {
+   
+   condition_1 <- events_full_span %>% 
+   filter(condition == comparison[1]) %>%
+   transmute(event_id = event_id, cond1_min_PSI_lo = min_PSI_lo, cond1_max_PSI_hi = max_PSI_hi, min_jc_cond1 = min_jc_condition)
+   print(nrow(condition_1))
+   
+   condition_2 <- events_full_span %>% 
+   filter(condition == comparison[2]) %>%
+   transmute(event_id = event_id, cond2_min_PSI_lo = min_PSI_lo, cond2_max_PSI_hi = max_PSI_hi, min_jc_cond2 = min_jc_condition)
+   print(nrow(condition_2))
+   
+   dpsi <- condition_1 %>%
+           left_join(condition_2, by = c("event_id")) %>%
+           mutate(min_dpsi = cond2_min_PSI_lo - cond1_max_PSI_hi, max_dpsi = cond2_max_PSI_hi - cond1_min_PSI_lo, mid_dpsi = (min_dpsi + max_dpsi)/2, span_dpsi = max_dpsi - min_dpsi, comparison = paste0(comparison[1], "_", comparison[2])) %>% 
+           select(event_id, span_dpsi, max_dpsi, min_dpsi, comparison, min_jc_cond1, min_jc_cond2) %>%
+           mutate(min_jc_comparison = pmap_dbl(list(x = min_jc_cond1, y = min_jc_cond2), function(x,y) min(x,y)), inner_dpsi = pmap_dbl(list(x = min_dpsi, y = max_dpsi), function(x,y) ifelse(sign(x) == sign(y), sign(x)*min(abs(x), abs(y)), 0)))
+   
+   all_condition_dpsi_df_list <- c(all_condition_dpsi_df_list, list(dpsi))
+   
+
+ }
+
+
+all_condition_dpsi_df_actual <- do.call(rbind, all_condition_dpsi_df_list)
+all_condition_dpsi_df_actual <- all_condition_dpsi_df_actual %>%
+  mutate(mid_dpsi = (max_dpsi + min_dpsi)/2)
+
+rm(dpsi)
+rm(condition_1)
+rm(condition_2)
+```
+
+
+```{r}
+
+all_condition_dpsi_df_actual_nmd <- all_condition_dpsi_df_actual %>%
+  left_join(nmd_nsd_status, by = "event_id")
+
+working_df <- all_condition_dpsi_df_actual_nmd %>% 
+  filter(!grepl("srsf1", comparison)) %>% 
+  separate(event_id, c("event_type"), extra = "drop", remove = FALSE) %>% 
+  filter(nmd_status == "always_nmd",abs(mid_dpsi) > 0, ptc_overlap) %>% 
+  mutate(expected_direction = ifelse(nmd_form == "included" & mid_dpsi > 0, TRUE, ifelse(nmd_form == "excluded" & mid_dpsi < 0, TRUE, FALSE)))
+
+
+count_bar_low_thresh <- all_condition_dpsi_df_actual_nmd %>% 
+  filter(!grepl("srsf1", comparison)) %>% 
+  separate(event_id, c("event_type"), extra = "drop", remove = FALSE) %>% 
+  filter(nmd_status == "always_nmd", ptc_overlap) %>% 
+  filter(abs(mid_dpsi) > 0, min_jc_comparison > 15) %>% 
+  mutate(nmd_form = case_when(nmd_form == "included" ~ "Included form has PTC", 
+                              nmd_form == "excluded" ~ "Excluded form has PTC"),
+         comparison = case_when(grepl("upf1", comparison) ~ "UPF1 KD", grepl("upf2", comparison) ~ "UPF2 KD")) %>%
+  ggplot(aes(x = mid_dpsi > 0, fill = event_type)) + 
+    geom_bar(alpha = 0.8) + 
+    facet_wrap(~nmd_form + comparison, scales = "free_y") + 
+    scale_fill_discrete(name = "Event type") +
+    theme_bw() + 
+    ylab("# Events") + 
+    xlab(expression(paste(Delta, Psi, " midpoint > 0"))) + 
+    ggtitle(expression(paste("Direction of ", Delta, Psi, " in putative NMD events after UPF1/2 KD")), 
+            subtitle = expression(paste("Given |", Delta, Psi, "| > 0 and min read count in comparison > 15")))
+
+ggsave(filename = "/home/andrew/projects/rnaseq_tools/cds_insertion/figures/bar_count_lower_thresh.pdf", plot = count_bar_low_thresh, units = "in")
+ggsave(filename = "/home/andrew/projects/rnaseq_tools/cds_insertion/figures/bar_count_lower_thresh.png", plot = count_bar_low_thresh, units = "in")
+
+count_bar_high_thresh <- all_condition_dpsi_df_actual_nmd %>% 
+  filter(!grepl("srsf1", comparison)) %>% 
+  separate(event_id, c("event_type"), extra = "drop", remove = FALSE) %>% 
+  filter(nmd_status == "always_nmd", ptc_overlap) %>% 
+  filter(abs(mid_dpsi) > 0.1, min_jc_comparison > 15) %>% 
+  mutate(nmd_form = case_when(nmd_form == "included" ~ "Included form has PTC", 
+                              nmd_form == "excluded" ~ "Excluded form has PTC"),
+         comparison = case_when(grepl("upf1", comparison) ~ "UPF1 KD", grepl("upf2", comparison) ~ "UPF2 KD")) %>%
+  ggplot(aes(x = mid_dpsi > 0, fill = event_type)) + 
+    geom_bar(alpha = 0.8) + 
+    facet_wrap(~nmd_form + comparison, scales = "free_y") + 
+    scale_fill_discrete(name = "Event type") +
+    theme_bw() + 
+    ylab("# Events") + 
+    xlab(expression(paste(Delta, Psi, " midpoint > 0"))) + 
+    ggtitle(expression(paste("Direction of ", Delta, Psi, " in putative NMD events after UPF1/2 KD")), 
+            subtitle = expression(paste("Given |", Delta, Psi, "| > 0.1 and min read count in comparison > 15")))
+
+ggsave(filename = "/home/andrew/projects/rnaseq_tools/cds_insertion/figures/bar_count_higher_thresh.pdf", plot = count_bar_high_thresh, units = "in")
+ggsave(filename = "/home/andrew/projects/rnaseq_tools/cds_insertion/figures/bar_count_higher_thresh.png", plot = count_bar_high_thresh, units = "in")
+
+mid_dpsi_bins = seq(0,0.2,0.004)
+min_jc_comparison_bins = seq(0,50,1)
+
+
+df_list = list()
+for (i in mid_dpsi_bins) {
+  for (j in min_jc_comparison_bins) {
+  temp <- working_df %>%
+    filter(abs(mid_dpsi) > i, min_jc_comparison > j) %>%
+      mutate(mid_dpsi_gt_bin = i, min_jc_comparison_gt_bin = j) %>%
+      group_by(mid_dpsi_gt_bin, min_jc_comparison_gt_bin) %>%
+      summarize(expected_direction_freq = mean(expected_direction), count = n())
+    df_list = c(df_list, list(temp))
+  }
+}
+
+exp_freq_df <- do.call(rbind, df_list)
+
+
+
+direction_freq_heatmap <- exp_freq_df %>% 
+  ggplot(aes(x = min_jc_comparison_gt_bin, y = mid_dpsi_gt_bin, fill = expected_direction_freq)) + 
+    geom_tile() + 
+    scale_fill_continuous(type = "viridis", name = "% Expected direction") + 
+    theme_bw() + 
+    ggtitle("% putative AS-NMD events whose PTC-isoform increases with UPF1 or 2 KD", 
+            subtitle = "Based on ENCODE K562 UPF1 and UPF2 KD by the Graveley Lab") + 
+    xlab("Min read count in comparison > x") +
+    ylab(expression(paste("|",Delta, Psi, "|", " > y")))
+
+ggsave(filename = "/home/andrew/projects/rnaseq_tools/cds_insertion/figures/direction_freq_heatmap.pdf", plot = direction_freq_heatmap, width = 8, units = "in")
+ggsave(filename = "/home/andrew/projects/rnaseq_tools/cds_insertion/figures/direction_freq_heatmap.png", plot = direction_freq_heatmap, width = 8, units = "in")
+
+
+
+direction_freq_count_heatmap <- exp_freq_df %>% 
+  mutate(log10_count = log(count, 10)) %>%
+  ggplot(aes(x = min_jc_comparison_gt_bin, y = mid_dpsi_gt_bin, fill = log10_count)) + 
+    geom_tile() + 
+    scale_fill_continuous(type = "viridis", name = "log10(# Events)") + 
+    theme_bw() + 
+    ggtitle("Count of putative AS-NMD events contributing to previous ratio plot", 
+            subtitle = "Based on ENCODE K562 UPF1 and UPF2 KD by the Graveley Lab") + 
+    xlab("Min read count in comparison > x") +
+    ylab(expression(paste("|",Delta, Psi, "|", " > y")))
+
+ggsave(filename = "/home/andrew/projects/rnaseq_tools/cds_insertion/figures/direction_freq_count_heatmap.pdf", plot = direction_freq_count_heatmap, width = 8, units = "in")
+ggsave(filename = "/home/andrew/projects/rnaseq_tools/cds_insertion/figures/direction_freq_count_heatmap.png", plot = direction_freq_count_heatmap, width = 8, units = "in")
+
+```
+

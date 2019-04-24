@@ -12,8 +12,9 @@ cds\_insertion is intended to add CDS features to transcriptome annotations lack
 
 ## Basic Requirements
 
-python 2.7  
-Bedtools v>=2.27  
+`python 2.7`  
+`Bedtools v>=2.27`    
+`splice_lib` (github.com/ajw2329/splice_lib/ - install using `python2.7 setup.py install`)  
 
 ## Basic usage:
 

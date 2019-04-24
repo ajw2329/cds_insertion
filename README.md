@@ -79,7 +79,6 @@ Here is an example of the file with field descriptions to follow:
   
 `three_utr_junction_counts` (string - comma separated list of integers): Number of exon-exon junctions in the 3'-UTR(s)  
   
-`junction_countained_three_utr_lengths` (string - comma separated list of integers): length of 3'-UTR up until the final exon-exon junction. This is equivalent to `max_downstream_PTC_distances` and will likely be removed in future versions  
 
 ### transcript_aa_seq.tsv
 
@@ -204,29 +203,35 @@ python2.7 generateIOE.py --transcript_gtf /path/to/transcriptome.gtf --event_gtf
 
 ### event_nmd_nsd_status.tsv
 
-| event_id                                      | nmd_status | nmd_form | ptc_overlap | nonstop_status | nonstop_form |
-|-----------------------------------------------|------------|----------|-------------|----------------|--------------|
-| human_chimpanzee_orangutan_macaque\|A5.0060093 | never_nmd  | NA       | NA          | never_nsd      | NA           |
-| human_chimpanzee_orangutan_macaque\|RI.0044820 | never_nmd  | NA       | NA          | never_nsd      | NA           |
-| human_chimpanzee_orangutan_macaque\|SE.0023738 | never_nmd  | NA       | NA          | never_nsd      | NA           |
-| human_chimpanzee_orangutan_macaque\|A3.0022901 | always_nmd | excluded | FALSE       | never_nsd      | NA           |
-| human_chimpanzee_orangutan_macaque\|RI.0077570 | never_nmd  | NA       | NA          | never_nsd      | NA           |
-| human_chimpanzee_orangutan\|RI.0036360         | never_nmd  | NA       | NA          | never_nsd      | NA           |
-| human_chimpanzee_orangutan_macaque\|SE.0023125 | never_nmd  | NA       | NA          | never_nsd      | NA           |
-| human_chimpanzee_orangutan_macaque\|SE.0059404 | always_nmd | included | TRUE        | never_nsd      | NA           |
+| event_id                                      | event_type | nmd_status | nmd_form    | ptc_overlap | nonstop_status | nonstop_form |
+|-----------------------------------------------|------------|----------- |-------------|----------------|-------------|--------------|
+| human_chimpanzee_orangutan_macaque\|A5.0060093 | A5 | never  | neither       | NA          | never      | neither           |
+| human_chimpanzee_orangutan_macaque\|RI.0044820 | RI | never  | neither       | NA          | never      | neither           |
+| human_chimpanzee_orangutan_macaque\|SE.0023738 | SE | never  | neither       | NA          | never      | neither           |
+| human_chimpanzee_orangutan_macaque\|A3.0022901 | A3 | always | excluded | FALSE       | never      | neither           |
+| human_chimpanzee_orangutan_macaque\|RI.0077570 | RI | never  | NA       | NA          | never      | neither           |
+| human_chimpanzee_orangutan\|RI.0036360         | RI | never  | NA       | NA          | never      | neither           |
+| human_chimpanzee_orangutan_macaque\|SE.0023125 | SE | never  | NA       | NA          | never      | neither           |
+| human_chimpanzee_orangutan_macaque\|SE.0059404 | SE | always | included | TRUE        | never      | neither           |
 
 
 `event_id` (string): unique identifier for each alt splicing event  
+
+`event_type` (categorical): Two-letter event-type identifier
   
-`nmd_status` (categorical with possibilities `always_nmd`, `sometimes_nmd`, `ambiguous_nmd`, and `never_nmd`): Describes the putative NMD status of the event. "always\_nmd" events are those in which one isoform is only consistent with transcripts having a putative PTC (when translated from any overlapping annotated start codon provided in `cds_insertion.py`), while the other isoform is only consistent with events _lacking_ a putative PTC. The behavior of these events is therefore expected to report on changes in NMD. "sometimes\_nmd" events are similar to `always_nmd` events, but the requirements are loosened: one of the isoforms must be consistent with at least one transcript with a putative PTC (again, translated using any putative ORF inserted by `cds_insertion.py`), while the other isoform must only be consistent with transcripts lacking a PTC. `ambiguous_nmd` events are those in which both isoforms are consistent with one or more transcripts. `never_nmd` events are those in which neither isoform is consistent with any transcripts with any putatively PTC-terminated ORFs (given available data).  
+`nmd_status` (categorical with possibilities `always`, `sometimes`, and `never`): Describes the putative NMD status of the event. `always` NMD events are those in which one isoform is only consistent with transcripts having a putative PTC (when translated from any overlapping annotated start codon provided in `cds_insertion.py`), while the other isoform is only consistent with events _lacking_ a putative PTC. The behavior of these events is therefore expected to report on changes in NMD. `sometimes` NMD events fall into two categories.  The first is similar to `always` NMD events, but the requirements are loosened: one of the isoforms must be consistent with at least one transcript with a putative PTC (again, translated using any putative ORF inserted by `cds_insertion.py`), while the other isoform must only be consistent with transcripts lacking a PTC.  Consequently, these `sometimes` NMD events can still be assigned a particular `nmd_form` (`included` or `excluded`).  The second category includes events in which at least one transcript from each isoform has a putative PTC.  Consequently, `nmd_form` is given the value `both`, and there is no obvious way to predict the behavior of these events upon NMD perturbation.  Note that the latter category of `sometimes` was previously identified as `ambiguous_nmd`. It was changed as the NMD status itself is not any more ambiguous than other `sometimes` events - it is instead the expected behavior of the event upon NMD perturbation whose behavior is ambiguous.  Finally `never` NMD events are those in which no transcript consistent with either isoform is predicted to contain a PTC.
   
-`nmd_form` (categorical with possibilities "included" or "excluded"): Indicates which event isoform is consistent with putative NMD substrates. This value is only supplied for events with `always_nmd` or "sometimes\_nmd" status. Otherwise it is left as "NA", including for `ambiguous_nmd` cases (in which both isoforms are presumptive substrates).  
+`nmd_form` (categorical with possibilities `included`,  `excluded`, `both`, or `neither`): Indicates which event isoform is consistent with putative NMD substrates. This value is only supplied for events with `always` NMD or `sometimes` NMD status. Events with `nmd_status` `always` can only have `nmd_form` values `included` or `excluded`.  Events with `nmd_status` `sometimes` can adopt all three `nmd_form` values.  This variable is what allows prediction of event behavior under conditions of NMD perturbation.  For example, we expect to observe a positive dPSI in events with `nmd_form` `included` upon NMD inhibition (e.g. through NMD factor knockdown or chemical inhibitors), and a negative dPSI under the same conditions for events with `nmd_form` `excluded`.  Events with `nmd_status` `never` have `nmd_form` `neither`.
    
-`ptc_overlap` (logical): Indicates whether the alternative region (e.g. the cassette exon in the case of a skipped exon (SE) event) contains all of the putative PTCs. It is only supplied for "always\_nmd" events, and is otherwise "NA".   
+`ptc_overlap` (logical): Indicates whether the alternative region (e.g. the cassette exon in the case of a skipped exon (SE) event) contains all of the putative PTCs. It is only supplied for `always` events, and is otherwise `NA`.   
   
-`nonstop_status` (categorical with possibilities `always_nonstop`, `sometimes_nonstop`, `ambiguous_nonstop`, and `never_nonstop`): Indicates putative nonstop (referring to nonstop decay) switch status. `always_nonstop` events are those in which one isoform is only consistent with transcripts whose complement of ORFs does not terminate in stop codons, while the other isoform is only consistent with transcripts whose complement of ORFs all contain stop codons. `sometimes_nonstop` events are those in which one isoform is consistent with transcripts whose complement of ORFs sometimes lack a stop codon, while the other isoform is only consistent with transcripts lacking truncated ORFs. `ambiguous_nonstop` events are those in which both isoforms are consistent with at least one transcript that contains at least one truncated ORF. `never_nonstop` events are those in which neither isoform is consistent with any transcript that contains any truncated ORFs (given available data).  
+`nonstop_status` (categorical with possibilities `always`, `sometimes`, and `never`): Indicates putative nonstop (referring to nonstop decay) switch status. `always` nonstop events are those in which one isoform is only consistent with transcripts whose complement of ORFs does not terminate in stop codons, while the other isoform is only consistent with transcripts whose complement of ORFs all contain stop codons. Similar to NMD events, `sometimes` events come in two flavors: 1) those in which one isoform is consistent with transcripts whose complement of ORFs sometimes lack a stop codon, while the other isoform is only consistent with transcripts lacking truncated ORFs, 2) those in which both isoforms are consistent with at least one transcript that contains at least one truncated ORF.  The latter category of `sometimes` formerly had its own value `ambiguous_nsd`. `never` nonstop events are those in which neither isoform is consistent with any transcript that contains any truncated ORFs (given available data).  
   
-`nonstop_form` (categorical with possible values "included" or "excluded"): Similar to `nmd_form`. This indicates the form of `always_nonstop` or `sometimes_nonstop` events that is putatively an NSD substrate. This value is "NA" for all other values of `nonstop_status`.  
+`nonstop_form` (categorical with possible values `included`, `excluded`, `both`, or `neither`): Similar to `nmd_form`. This indicates the form of `always` or `sometimes` events that is putatively an NSD substrate. `both` indicates both event isoforms are consistent with at least one transcript that is predicted to contain at least one truncated ORF.  `neither` corresponds to all events with `never` nonstop status. 
+
+### event_coding_status.tsv
+
+Much extended table that includes CDS lengths, CDS overlap, coding switch status etc.  This is a superset of `event_nmd_nsd_status.tsv`. More details forthcoming.
 
 ## Validation  
 

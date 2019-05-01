@@ -36,11 +36,19 @@ def add_sequence_to_transcript_dict(transcript_fasta, full_transcript_dict):
 
 def make_cds_dict(transcript_cds_dict):
 	'''
-		Returns CDS dictionary from CDS exon input file (indexed by gene - this is OK since CDS input file is generated using an established annotation)
+		Returns CDS dictionary from CDS exon 
+		input file (indexed by gene - this is OK 
+		since CDS input file is generated using an 
+		established annotation)
 
-		As each CDS is collected, it is matched via splice junctions to potential matching transcripts via the junction-indexed transcript dict.  
+		As each CDS is collected, it is 
+		matched via splice junctions to 
+		potential matching transcripts 
+		via the junction-indexed transcript dict.  
 
-		The match is assessed by calling cds_junction_search (which calls assign cds_to_transcript).
+		The match is assessed by calling 
+		cds_junction_search (which calls 
+		assign cds_to_transcript).
 
 	'''
 
@@ -66,14 +74,14 @@ def make_cds_dict(transcript_cds_dict):
 		if test_cds_key not in cds_dict:
 
 			cds_dict[test_cds_key] = {
-										"cds_start": start_end[0],
-										"cds_end": start_end[1],
-										"exons": exon_list,
-										"junctions": splice_lib.get_junctions(exon_list),
-										"chrom": chrom,
-										"strand": strand,
-										"gene": gene,
-										"transcripts": [transcript]
+				"cds_start": start_end[0],
+				"cds_end": start_end[1],
+				"exons": exon_list,
+				"junctions": splice_lib.get_junctions(exon_list),
+				"chrom": chrom,
+				"strand": strand,
+				"gene": gene,
+				"transcripts": [transcript]
 
 									}
 
@@ -195,8 +203,11 @@ def assign_cds_to_transcript(cds,
 							 input_cds_dict):
 
 	'''
-		Takes as input an entry from cds exon dict, a transcript id, and the full transcript dict.  Checks to see if the CDS is a full match for the transcript, and (if it is) adds it to
-		the full transcript dict.
+		Takes as input an entry from cds exon dict, 
+		a transcript id, and the full transcript 
+		dict.  Checks to see if the CDS is a 
+		full match for the transcript, and 
+		(if it is) adds it to the full transcript dict.
 	'''
 
 	#full_verbose = False

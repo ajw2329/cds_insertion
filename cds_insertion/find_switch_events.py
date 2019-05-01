@@ -19,7 +19,9 @@ def string_bool(string):
 
 	else:
 
-		sys.exit("Unsupported string passed to string_bool function.  Can only use 'True' or 'False'.  Exiting  . . . ")
+		sys.exit("Unsupported string passed to " + 
+			     "string_bool function.  Can only " + 
+			     "use 'True' or 'False'.  Exiting  . . . ")
 
 ### write the following:
 
@@ -152,7 +154,7 @@ def nsd_status(event_entry, standard_transcript_dict):
 
 			property_dict[form]["always_nonstop"].append(
 				string_bool(standard_transcript_dict[transcript]["always_nonstop"]))
-			property_dict[form]["always_nonstop"].append(
+			property_dict[form]["sometimes_nonstop"].append(
 				string_bool(standard_transcript_dict[transcript]["sometimes_nonstop"]))
 
 	included_always_nonstop = property_dict["included"]["always_nonstop"]
@@ -755,27 +757,6 @@ def output_table(standard_event_dict, outdir):
 
 
 
-def add_transcripts_to_event_dict(ioe_file, standard_event_dict):
-
-	'''
-		Creates pseudo event and transcript dicts to run event_nmd_nsd_status and output_table functions without having passed the full dicts as input to main.  Useful if running script as standalone.
-	'''
-
-	with open(ioe_file, 'r') as file:
-
-		next(file)
-
-		for line in file:
-
-			entry = line.strip().split()
-			event = entry[2].split(";")[1]
-
-			included_form_transcripts = entry[3].split(",")
-			all_transcripts = entry[4].split(",")
-			excluded_form_transcripts = list(set(all_transcripts) - set(included_form_transcripts))
-
-			standard_event_dict[event]["included_form_transcripts"] = list(included_form_transcripts) 
-			standard_event_dict[event]["excluded_form_transcripts"] = list(excluded_form_transcripts)
 
 
 
@@ -829,7 +810,7 @@ def main(args, standard_transcript_dict = None, standard_event_dict = None):
 
 		print "Event data imported.  Now adding transcripts to event dict via IOE file"
 
-		add_transcripts_to_event_dict(ioe_file, standard_event_dict)
+		splice_lib.add_transcripts_to_event_dict(ioe_file, standard_event_dict)
 
 		print "Transcripts added to event dict.  Now finding exons unique to either form"
 

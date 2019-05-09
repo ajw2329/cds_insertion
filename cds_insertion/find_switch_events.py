@@ -772,9 +772,9 @@ def main(args, standard_transcript_dict = None, standard_event_dict = None):
 						type = str, 
 						help = "Output directory")
 
-	parser.add_argument("--ioe_file", 
+	parser.add_argument("--ioe_files", 
 						type = str, 
-						help = "Event ioe file")
+						help = "Event ioe file paths comma-separated")
 
 	parser.add_argument("--event_gtf", 
 						type = str, 
@@ -783,24 +783,27 @@ def main(args, standard_transcript_dict = None, standard_event_dict = None):
 							   "determination if standard_event_dict " + 
 							   "not supplied as argument to main()")
 
-	parser.add_argument("--transcript_dict_pkl", 
+	parser.add_argument("--transcript_dict_pkls", 
 						type = str, 
 						help = "Pickled transcript dict from " + 
 							   "cds_insertion.py.  Required for " + 
 							   "certain features to work e.g. PTC " + 
 							   "overlap determination if " + 
 							   "standard_transcript_dict not " + 
-							   "supplied as argument to main()")
+							   "supplied as argument to main(). " + 
+							   "Can supply multiple paths as " + 
+							   "comma-separated list, in which case " + 
+							   "the dicts will be combined.")
 
 	args = parser.parse_args(args)
 
 
 	suppress_output = args.suppress_output
 	outdir = args.outdir
-	ioe_file = args.ioe_file
+	ioe_files = args.ioe_files
 	#transcript_table = args.transcript_table
 	event_gtf = args.event_gtf
-	transcript_dict_pkl = args.transcript_dict_pkl 
+	transcript_dict_pkls = args.transcript_dict_pkls 
 
 	if standard_event_dict is None and event_gtf is not None:
 
@@ -810,7 +813,7 @@ def main(args, standard_transcript_dict = None, standard_event_dict = None):
 
 		print "Event data imported.  Now adding transcripts to event dict via IOE file"
 
-		splice_lib.add_transcripts_to_event_dict(ioe_file, standard_event_dict)
+		splice_lib.add_transcripts_to_event_dict(ioe_files, standard_event_dict)
 
 		print "Transcripts added to event dict.  Now finding exons unique to either form"
 
@@ -836,17 +839,21 @@ def main(args, standard_transcript_dict = None, standard_event_dict = None):
 			     "option (it is confusing!)")
 
 
-	if standard_transcript_dict is None and transcript_dict_pkl is not None:
+	if standard_transcript_dict is None and transcript_dict_pkls is not None:
 
 		print "Importing transcript data"
 
 		import cPickle as pkl
-		standard_transcript_dict = pkl.load(open(transcript_dict_pkl, "rb"))
+
+		transcript_dict_pkl_paths = transcript_dict_pkls.split(",")
+
+		standard_transcript_dict = dict(chain(*map(dict.items, [pkl.load(open(i, "rb")) for i in
+									transcript_dict_pkl_paths])))
 
 	else:
 
 		sys.exit("Please supply either standard_transcript_dict " +
-			     "as arg to main() or supply path to --transcript_dict_pkl (not both)")
+			     "as arg to main() or supply path to --transcript_dict_pkls (not both)")
 
 
 	if not suppress_output and outdir is None:

@@ -604,6 +604,8 @@ def output_cds_inserted_gtf(full_transcript_dict, outdir):
 
 			transcript_id = transcript + "_" + str(counter)
 
+			cds_entry["transcript_version"] = transcript_id
+
 
 			field_nine = ('gene_id "' + 
 						 transcript_entry["gene"] + 
@@ -915,7 +917,8 @@ def output_aa_sequence(full_transcript_dict,
 	output_table = open(outdir + "/transcript_aa_seq.tsv", 'w')
 
 	output_table.write("\t".join(["gene", 
-								  "transcript_id", 
+								  "transcript_id",
+								  "transcript_version", 
 								  "cds_id", 
 								  "aa_seq"]) + "\n")
 
@@ -924,7 +927,8 @@ def output_aa_sequence(full_transcript_dict,
 		for cds, cds_entry in transcript_entry["CDS"].iteritems():
 
 			output_table.write("\t".join([transcript_entry["gene"], 
-										  transcript, 
+										  transcript,
+										  cds_entry["transcript_version"], 
 										  cds, 
 										  cds_entry["aa_seq"]]) + "\n")
 

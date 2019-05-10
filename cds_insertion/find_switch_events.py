@@ -774,7 +774,7 @@ def main(args, standard_transcript_dict = None, standard_event_dict = None):
 
 	parser.add_argument("--ioe_files", 
 						type = str, 
-						help = "Event ioe file paths comma-separated")
+						help = "Event ioe file path")
 
 	parser.add_argument("--event_gtf", 
 						type = str, 
@@ -783,17 +783,14 @@ def main(args, standard_transcript_dict = None, standard_event_dict = None):
 							   "determination if standard_event_dict " + 
 							   "not supplied as argument to main()")
 
-	parser.add_argument("--transcript_dict_pkls", 
+	parser.add_argument("--transcript_dict_pkl", 
 						type = str, 
 						help = "Pickled transcript dict from " + 
 							   "cds_insertion.py.  Required for " + 
 							   "certain features to work e.g. PTC " + 
 							   "overlap determination if " + 
 							   "standard_transcript_dict not " + 
-							   "supplied as argument to main(). " + 
-							   "Can supply multiple paths as " + 
-							   "comma-separated list, in which case " + 
-							   "the dicts will be combined.")
+							   "supplied as argument to main(). ")
 
 	args = parser.parse_args(args)
 

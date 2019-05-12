@@ -800,7 +800,7 @@ def main(args, standard_transcript_dict = None, standard_event_dict = None):
 	ioe_files = args.ioe_files
 	#transcript_table = args.transcript_table
 	event_gtf = args.event_gtf
-	transcript_dict_pkls = args.transcript_dict_pkls 
+	transcript_dict_pkl = args.transcript_dict_pkl
 
 	if standard_event_dict is None and event_gtf is not None:
 
@@ -836,21 +836,18 @@ def main(args, standard_transcript_dict = None, standard_event_dict = None):
 			     "option (it is confusing!)")
 
 
-	if standard_transcript_dict is None and transcript_dict_pkls is not None:
+	if standard_transcript_dict is None and transcript_dict_pkl is not None:
 
 		print "Importing transcript data"
 
 		import cPickle as pkl
 
-		transcript_dict_pkl_paths = transcript_dict_pkls.split(",")
-
-		standard_transcript_dict = dict(chain(*map(dict.items, [pkl.load(open(i, "rb")) for i in
-									transcript_dict_pkl_paths])))
+		standard_transcript_dict = pkl.load(open(transcript_dict_pkl, "rb"))
 
 	else:
 
 		sys.exit("Please supply either standard_transcript_dict " +
-			     "as arg to main() or supply path to --transcript_dict_pkls (not both)")
+			     "as arg to main() or supply path to --transcript_dict_pkl (not both)")
 
 
 	if not suppress_output and outdir is None:

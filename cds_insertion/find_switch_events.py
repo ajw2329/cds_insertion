@@ -34,7 +34,49 @@ def string_bool(string):
 ## UTR lengths, CDS lengths, PTC lengths
 
 
-def nmd_status(event_entry, standard_transcript_dict):
+
+def call_ptc_overlap(
+		event_entry,
+		form,
+		standard_transcript_dict,
+		ptc_distance_threshold):
+
+	ptc_overlap = []
+
+	for transcript in event_entry[form + "_form_transcripts"]:
+
+		for cds, cds_entry in standard_transcript_dict[transcript]["CDS"].iteritems():
+
+			if max(cds_entry["downstream_PTC_junction_distances"]) >= ptc_distance_threshold:
+
+				if (splice_lib.position_contained(event_entry[form + "_alt_regions"], 
+												  cds_entry["stop_codon"][0][0])[0] or 
+				    splice_lib.position_contained(event_entry[form + "_alt_regions"], 
+				    	                          cds_entry["stop_codon"][-1][-1])[0]):
+
+					ptc_overlap.append(True)
+
+				else:
+
+					ptc_overlap.append(False)
+
+	if len(ptc_overlap) > 0 and all(ptc_overlap):
+
+		return "always"
+
+	elif any(ptc_overlap):
+
+		return "sometimes"
+
+	else:
+
+		return "never"
+
+
+def nmd_status(
+		event_entry, 
+		standard_transcript_dict,
+		ptc_distance_threshold = 55):
 
 
 	property_dict = {"included": {"always_nmd": [],
@@ -58,144 +100,218 @@ def nmd_status(event_entry, standard_transcript_dict):
 	excluded_sometimes_nmd = property_dict["excluded"]["sometimes_nmd"]
 
 
-	event_entry["nmd_status"] = "never"
-	event_entry["nmd_form"] = "neither"
+	included_nmd_status = "never"
+	included_ptc_overlap = "NA"
 
-	if (all(included_always_nmd) and 
-		len(included_always_nmd) > 0 and not 
-		any(excluded_sometimes_nmd)):
+	excluded_nmd_status = "never"
+	excluded_ptc_overlap = "NA"
 
 
-		event_entry["nmd_status"] = "always"
-		event_entry["nmd_form"] = "included"
+	all_inc = all(included_always_nmd)
+	all_exc = all(excluded_always_nmd)
+	nz_inc = len(included_always_nmd) > 0
+	nz_exc = len(excluded_always_nmd) > 0
 
-	elif (all(excluded_always_nmd) and 
-		  len(excluded_always_nmd) > 0 and not 
-		  any(included_sometimes_nmd)):
+	some_inc = any(included_sometimes_nmd)
+	some_exc = any(excluded_sometimes_nmd)
 
-		event_entry["nmd_status"] = "always"
-		event_entry["nmd_form"] = "excluded"
+	if all_inc and nz_inc:
 
-	elif (any(included_sometimes_nmd) and not 
-		  any(excluded_sometimes_nmd)):
+		included_nmd_status = "always"
+		included_ptc_overlap = call_ptc_overlap(
+			event_entry,
+			"included",
+			standard_transcript_dict,
+			ptc_distance_threshold)
 
-		event_entry["nmd_status"] = "sometimes"
-		event_entry["nmd_form"] = "included"
+	elif some_inc:
 
-	elif (any(excluded_sometimes_nmd) and not 
-		  any(included_sometimes_nmd)):
-
-		event_entry["nmd_status"] = "sometimes"
-		event_entry["nmd_form"] = "excluded"
-
-	elif (any(included_sometimes_nmd) and 
-		  any(excluded_sometimes_nmd)):
-
-		event_entry["nmd_status"] = "sometimes"
-		event_entry["nmd_form"] = "both"
+		included_nmd_status = "sometimes"
+		included_ptc_overlap = call_ptc_overlap(
+			event_entry,
+			"included",
+			standard_transcript_dict,
+			ptc_distance_threshold)		
 
 
 
-	ptc_overlap = []
 
-	if event_entry["nmd_form"] not in [ "both", "neither" ]:
+	if all_exc and nz_exc:
 
-		for transcript in event_entry[event_entry["nmd_form"] + "_form_transcripts"]:
+		excluded_nmd_status = "always"
+		excluded_ptc_overlap = call_ptc_overlap(
+			event_entry,
+			"excluded",
+			standard_transcript_dict,
+			ptc_distance_threshold)
 
-			for cds, cds_entry in standard_transcript_dict[transcript]["CDS"].iteritems():
+	elif some_exc:
 
-				if (splice_lib.position_contained(event_entry[event_entry["nmd_form"] + "_alt_regions"], 
-												  cds_entry["stop_codon"][0][0])[0] or 
-				    splice_lib.position_contained(event_entry[event_entry["nmd_form"] + "_alt_regions"], 
-				    	                          cds_entry["stop_codon"][-1][-1])[0]):
+		excluded_nmd_status = "sometimes"
+		excluded_ptc_overlap = call_ptc_overlap(
+			event_entry,
+			"excluded",
+			standard_transcript_dict,
+			ptc_distance_threshold)
 
-					ptc_overlap.append(True)
 
-				else:
 
-					ptc_overlap.append(False)
+	event_entry["included_nmd_status"] = included_nmd_status
+	event_entry["included_ptc_overlap"] = included_ptc_overlap
 
-	if len(ptc_overlap) > 0:
+	event_entry["excluded_nmd_status"] = excluded_nmd_status
+	event_entry["excluded_ptc_overlap"] = excluded_ptc_overlap
 
-		if all(ptc_overlap):
 
-			event_entry[ "ptc_overlap" ] = "always"
+	## nmd_switch
+	## can be 'always' if switching from 'always' included_nmd_status to
+	## 'never' excluded_nmd_status or vice versa.  Can also be 'sometimes'
+	## if switching between 'sometimes' and 'never' isoforms.  Can finally
+	## be 'never' if both isoforms are 'never', or both isoforms are 
+	## 'sometimes'/'always'
 
-		elif any(ptc_overlap):
 
-			event_entry[ "ptc_overlap" ] = "sometimes"
+	if (included_nmd_status == "always" and 
+		excluded_nmd_status == "never"):
 
-		else:
+		nmd_switch = "always"
+		nmd_form = "included"
 
-			event_entry[ "ptc_overlap" ] = "never"
+	elif (included_nmd_status == "sometimes" and 
+		excluded_nmd_status == "never"):
 
-	elif event_entry[ "nmd_form" ] not in [ "both", "neither" ]:
+		nmd_switch = "sometimes"
+		nmd_form = "included"
 
-		sys.exit("There is a problem in event_nmd_nsd_status(): " +
-			     "ptc_overlap determination was not successful for an always_nmd event.")
+	elif (included_nmd_status in ["always", "sometimes"] and 
+		  excluded_nmd_status in ["always","sometimes"]):
 
-	else:
+		nmd_switch = "never"
+		nmd_form = "both"
 
-		event_entry["ptc_overlap"] = "NA"
+	elif (excluded_nmd_status == "always" and 
+		  included_nmd_status == "never"):
+
+		nmd_switch = "always"
+		nmd_form = "excluded"
+
+	elif (excluded_nmd_status == "sometimes" and 
+		  included_nmd_status == "never"):
+
+		nmd_switch = "sometimes"
+		nmd_form = "excluded"
+
+	elif (included_nmd_status == "never" and 
+		  excluded_nmd_status == "never"):
+
+		nmd_switch = "never"
+		nmd_form = "never"
+
+
+	event_entry["nmd_form"] = nmd_form
+	event_entry["nmd_switch"] = nmd_switch
+
+
 
 
 
 def nsd_status(event_entry, standard_transcript_dict):
 
 
-	property_dict = {"included": {"always_nonstop": [],
-								  "sometimes_nonstop": []},
-					 "excluded": {"always_nonstop": [],
-					 			  "sometimes_nonstop": []}}
+	property_dict = {"included": {"always_nsd": [],
+								  "sometimes_nsd": []},
+					 "excluded": {"always_nsd": [],
+					 			  "sometimes_nsd": []}}
 
 	for form in [ "included", "excluded" ]:
 
 		for transcript in event_entry[form + "_form_transcripts"]:
 
-			property_dict[form]["always_nonstop"].append(
+			property_dict[form]["always_nsd"].append(
 				string_bool(standard_transcript_dict[transcript]["always_nonstop"]))
-			property_dict[form]["sometimes_nonstop"].append(
+			property_dict[form]["sometimes_nsd"].append(
 				string_bool(standard_transcript_dict[transcript]["sometimes_nonstop"]))
 
-	included_always_nonstop = property_dict["included"]["always_nonstop"]
-	included_sometimes_nonstop = property_dict["included"]["sometimes_nonstop"]
-	excluded_always_nonstop = property_dict["excluded"]["always_nonstop"]
-	excluded_sometimes_nonstop = property_dict["excluded"]["sometimes_nonstop"]
+	included_always_nsd = property_dict["included"]["always_nsd"]
+	included_sometimes_nsd = property_dict["included"]["sometimes_nsd"]
+	excluded_always_nsd = property_dict["excluded"]["always_nsd"]
+	excluded_sometimes_nsd = property_dict["excluded"]["sometimes_nsd"]
 
-	event_entry["nsd_status"] = "never"
-	event_entry["nonstop_form"] = "neither"
+	included_nsd_status = "never"
 
-	if (all(included_always_nonstop) and 
-		len(included_always_nonstop) > 0 and not 
-		any(excluded_sometimes_nonstop)):
+	excluded_nsd_status = "never"
 
-		event_entry["nsd_status"] = "always"
-		event_entry["nonstop_form"] = "included"
 
-	elif (all(excluded_always_nonstop) and 
-		  len(excluded_always_nonstop) > 0 and not 
-		  any(included_sometimes_nonstop)):
+	all_inc = all(included_always_nsd)
+	all_exc = all(excluded_always_nsd)
+	nz_inc = len(included_always_nsd) > 0
+	nz_exc = len(excluded_always_nsd) > 0
 
-		event_entry["nsd_status"] = "always"
-		event_entry["nonstop_form"] = "excluded"
+	some_inc = any(included_sometimes_nsd)
+	some_exc = any(excluded_sometimes_nsd)
 
-	elif (any(included_sometimes_nonstop) and not 
-		  any(excluded_sometimes_nonstop)):
+	if all_inc and nz_inc:
 
-		event_entry["nsd_status"] = "sometimes"
-		event_entry["nonstop_form"] = "included"
+		included_nsd_status = "always"
 
-	elif (any(excluded_sometimes_nonstop) and not 
-		  any(included_sometimes_nonstop)):
+	elif some_inc:
 
-		event_entry["nsd_status"] = "sometimes"
-		event_entry["nonstop_form"] = "excluded"
+		included_nsd_status = "sometimes"
 
-	elif (any(included_sometimes_nonstop) and 
-		  any(excluded_sometimes_nonstop)):
 
-		event_entry["nsd_status"] = "sometimes"
-		event_entry["nonstop_form"] = "both"
+	if all_exc and nz_exc:
+
+		excluded_nsd_status = "always"
+
+	elif some_exc:
+
+		excluded_nsd_status = "sometimes"
+
+
+
+	event_entry["included_nsd_status"] = included_nsd_status
+	event_entry["excluded_nsd_status"] = excluded_nsd_status
+
+
+	if (included_nsd_status == "always" and 
+		excluded_nsd_status == "never"):
+
+		nsd_switch = "always"
+		nsd_form = "included"
+
+	elif (included_nsd_status == "sometimes" and 
+		excluded_nsd_status == "never"):
+
+		nsd_switch = "sometimes"
+		nsd_form = "included"
+
+	elif (included_nsd_status in ["always", "sometimes"] and 
+		  excluded_nsd_status in ["always","sometimes"]):
+
+		nsd_switch = "never"
+		nsd_form = "both"
+
+	elif (excluded_nsd_status == "always" and 
+		  included_nsd_status == "never"):
+
+		nsd_switch = "always"
+		nsd_form = "excluded"
+
+	elif (excluded_nsd_status == "sometimes" and 
+		  included_nsd_status == "never"):
+
+		nsd_switch = "sometimes"
+		nsd_form = "excluded"
+
+	elif (included_nsd_status == "never" and 
+		  excluded_nsd_status == "never"):
+
+		nsd_switch = "never"
+		nsd_form = "never"
+
+
+	event_entry["nsd_form"] = nsd_form
+	event_entry["nsd_switch"] = nsd_switch
 
 
 
@@ -215,40 +331,48 @@ def coding_noncoding_switch(event_entry, standard_transcript_dict):
 			cds_counts[form].append(normal_count + nonstop_count)
 
 
-	if (all([i > 0 for i in cds_counts["excluded"]]) and
-		all([i > 0 for i in cds_counts["included"]])):
+	all_inc = all([i > 0 for i in cds_counts["included"]])
+	any_inc = any([i > 0 for i in cds_counts["included"]])
+	nz_inc = len(cds_counts["included"]) > 0
+
+	all_exc = all([i > 0 for i in cds_counts["excluded"]])
+	any_exc = any([i > 0 for i in cds_counts["excluded"]])
+	nz_exc = len(cds_counts["excluded"]) > 0
+
+
+	if all_inc and nz_inc and all_exc and nz_exc:
 
 		event_entry["coding_status"] = "always"
 		event_entry["coding_switch"] = "never"
 		event_entry["coding_form"] = "both"
 
 
-	elif (any([i > 0 for i in cds_counts["excluded"]]) or
-		  any([i > 0 for i in cds_counts["included"]])):
+	elif (any_exc or
+		  any_inc):
 
 		event_entry["coding_status"] = "sometimes"	
 
 
-		if (all([i > 0 for i in cds_counts["included"]]) and not
-			 any([i > 0 for i in cds_counts["excluded"]])):
+		if ((all_inc and nz_inc) and not
+			 any_exc):
 
 			event_entry["coding_switch"] = "always"
 			event_entry["coding_form"] = "included"
 
-		elif (all([i > 0 for i in cds_counts["excluded"]]) and not
-			  any([i > 0 for i in cds_counts["included"]])):
+		elif ((all_exc and nz_exc) and not
+			  any_inc):
 
 			event_entry["coding_switch"] = "always"
 			event_entry["coding_form"] = "excluded"
 
-		elif (any([i > 0 for i in cds_counts["included"]]) and not
-			  any([i > 0 for i in cds_counts["excluded"]])):
+		elif (any_inc and not
+			  any_exc):
 
 			event_entry["coding_switch"] = "sometimes"
 			event_entry["coding_form"] = "included"
 
-		elif (any([i > 0 for i in cds_counts["excluded"]]) and not
-			  any([i > 0 for i in cds_counts["included"]])):
+		elif (any_exc and not
+			  any_inc):
 
 			event_entry["coding_switch"] = "sometimes"
 			event_entry["coding_form"] = "excluded"
@@ -257,7 +381,6 @@ def coding_noncoding_switch(event_entry, standard_transcript_dict):
 
 			event_entry["coding_switch"] = "sometimes"
 			event_entry["coding_form"] = "both"
-
 
 	else:
 
@@ -595,11 +718,16 @@ def output_table(standard_event_dict, outdir):
 
 	nmd_header_content = ["event_id",
 					      "event_type",
-					      "nmd_status", 
+					      "included_nmd_status",
+					      "included_ptc_overlap",
+					      "excluded_nmd_status",
+					      "excluded_ptc_overlap",
+					      "nmd_switch", 
 					      "nmd_form", 
-					      "ptc_overlap", 
-					      "nonstop_status", 
-					      "nonstop_form"]
+					      "included_nsd_status",
+					      "excluded_nsd_status",
+					      "nsd_switch", 
+					      "nsd_form"]
 
 	output_nmd_table.write("\t".join(nmd_header_content) + "\n")
 
@@ -657,11 +785,16 @@ def output_table(standard_event_dict, outdir):
 					  "exc_utr5_overlap",
 					  "inc_utr3_overlap",
 					  "exc_utr3_overlap",
-					  "nmd_status", 
+					  "included_nmd_status",
+					  "included_ptc_overlap",
+					  "excluded_nmd_status",
+					  "excluded_ptc_overlap",
+					  "included_nsd_status",
+					  "excluded_nsd_status",
+					  "nmd_switch", 
 					  "nmd_form", 
-					  "ptc_overlap", 
-					  "nonstop_status", 
-					  "nonstop_form",
+					  "nsd_switch", 
+					  "nsd_form",
 					  "coding_status",
 					  "coding_switch",
 					  "coding_form",
@@ -674,11 +807,16 @@ def output_table(standard_event_dict, outdir):
 
 		nmd_entry_content = [event,
 						 	 event_entry["event_type"],
-						 	 event_entry["nmd_status"],
+						 	 event_entry["included_nmd_status"],
+						 	 event_entry["included_ptc_overlap"],
+						 	 event_entry["excluded_nmd_status"],
+						 	 event_entry["excluded_ptc_overlap"],
+						 	 event_entry["nmd_switch"],
 							 event_entry["nmd_form"],
-							 event_entry["ptc_overlap"],
-							 event_entry["nsd_status"],
-							 event_entry["nonstop_form"]]
+							 event_entry["included_nsd_status"],
+							 event_entry["excluded_nsd_status"],
+							 event_entry["nsd_switch"],
+							 event_entry["nsd_form"]]
 
 		output_nmd_table.write("\t".join(nmd_entry_content) + "\n")
 
@@ -726,7 +864,7 @@ def output_table(standard_event_dict, outdir):
 						 str(isoform_property_diffs["mean_three_utr_lengths_inc_exc_diff"]),	
 						 str(isoform_property_diffs["mean_PTC_distances_inc_exc_ratio"]),
 						 str(isoform_property_diffs["mean_PTC_distances_inc_exc_diff"]),	
-						 str(isoform_property_diffs["mean_max_downstream_PTC_distances_inc_exc_ratio"]),				 						 						 
+						 str(isoform_property_diffs["mean_max_downstream_PTC_distances_inc_exc_ratio"]),		 						 						 
 						 str(isoform_property_diffs["mean_max_downstream_PTC_distances_inc_exc_diff"]),
 						 str(isoform_property_diffs["mean_three_utr_junction_counts_inc_exc_ratio"]),
 						 str(isoform_property_diffs["mean_three_utr_junction_counts_inc_exc_diff"]),						 
@@ -737,12 +875,17 @@ def output_table(standard_event_dict, outdir):
 					  	 str(feature_overlap_boolean["included"]["utr5"]),
 					  	 str(feature_overlap_boolean["excluded"]["utr5"]),
 					  	 str(feature_overlap_boolean["included"]["utr3"]),
-					  	 str(feature_overlap_boolean["excluded"]["utr3"]),						 
-						 event_entry["nmd_status"],
+					  	 str(feature_overlap_boolean["excluded"]["utr3"]),
+					  	 event_entry["included_nmd_status"],
+					  	 event_entry["included_ptc_overlap"],
+					  	 event_entry["excluded_nmd_status"],
+					  	 event_entry["excluded_ptc_overlap"],
+					  	 event_entry["included_nsd_status"],
+					  	 event_entry["excluded_nsd_status"],						 
+						 event_entry["nmd_switch"],
 						 event_entry["nmd_form"],
-						 event_entry["ptc_overlap"],
-						 event_entry["nsd_status"],
-						 event_entry["nonstop_form"],
+						 event_entry["nsd_switch"],
+						 event_entry["nsd_form"],
 						 str(event_entry["coding_status"]),
 						 str(event_entry["coding_switch"]),
 						 str(event_entry["coding_form"]),

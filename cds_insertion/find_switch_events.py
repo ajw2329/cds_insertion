@@ -34,6 +34,33 @@ def string_bool(string):
 ## UTR lengths, CDS lengths, PTC lengths
 
 
+def form_specific_codon_ngrams(
+		event_entry,
+		standard_transcript_dict,
+		ngrams = (1,2)):
+
+
+	cds_seqs_dict = {}
+
+	for form in ["included", "excluded"]:
+
+		for transcript in event_entry[form + "_form_transcripts"]:
+
+			for cds, cds_entry in standard_transcript_dict[transcript]["CDS"].iteritems():
+
+				cds_seqs_dict.setdefault(form, set()).add(cds_entry["cds_seq"])
+
+
+	event_entry["included_unique_codon_ngrams"] = ",".join(sorted(splice_lib.codon_set_diff(
+		list(cds_seqs_dict["included"]), 
+		list(cds_seqs_dict["excluded"]), ngrams = ngrams)))
+
+	event_entry["excluded_unique_codon_ngrams"] = ",".join(sorted(splice_lib.codon_set_diff(
+		list(cds_seqs_dict["excluded"]), 
+		list(cds_seqs_dict["included"]), ngrams = ngrams)))
+
+
+
 
 def call_ptc_overlap(
 		event_entry,
@@ -710,6 +737,8 @@ def event_statuses(standard_event_dict,
 
 			get_form_properties(event_entry, standard_transcript_dict)
 
+			form_specific_codon_ngrams(event_entry,	standard_transcript_dict, ngrams = (1,2))
+
 
 
 def output_table(standard_event_dict, outdir):
@@ -799,7 +828,9 @@ def output_table(standard_event_dict, outdir):
 					  "coding_switch",
 					  "coding_form",
 					  "cds_alteration",
-					  "form_unique_cds"]
+					  "form_unique_cds",
+					  "inc_form_codon_ngrams",
+					  "exc_form_codon_ngrams"]
 
 	output_table.write("\t".join(header_content) + "\n")
 
@@ -890,7 +921,9 @@ def output_table(standard_event_dict, outdir):
 						 str(event_entry["coding_switch"]),
 						 str(event_entry["coding_form"]),
 						 str(event_entry["cds_alteration"]),
-						 str(event_entry["form_unique_cds"])
+						 str(event_entry["form_unique_cds"]),
+						 str(event_entry["included_unique_codon_ngrams"]),
+						 str(event_entry["excluded_unique_codon_ngrams"])
 						 ]
 
 		output_table.write("\t".join(entry_content) + "\n")

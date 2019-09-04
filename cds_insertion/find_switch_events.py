@@ -40,7 +40,7 @@ def form_specific_codon_ngrams(
 		ngrams = (1,2)):
 
 
-	cds_seqs_dict = {}
+	cds_seqs_dict = {"included": "NA", "excluded": "NA"}
 
 	for form in ["included", "excluded"]:
 
@@ -50,20 +50,14 @@ def form_specific_codon_ngrams(
 
 				cds_seqs_dict.setdefault(form, set()).add(cds_entry["cds_seq"])
 
-	if len(cds_seqs_dict) == 2:
 
-		event_entry["included_unique_codon_ngrams"] = ",".join(sorted(splice_lib.codon_set_diff(
-			list(cds_seqs_dict["included"]), 
-			list(cds_seqs_dict["excluded"]), ngrams = ngrams)))
+	event_entry["included_unique_codon_ngrams"] = ",".join(sorted(splice_lib.codon_set_diff(
+		list(cds_seqs_dict["included"]), 
+		list(cds_seqs_dict["excluded"]), ngrams = ngrams)))
 
-		event_entry["excluded_unique_codon_ngrams"] = ",".join(sorted(splice_lib.codon_set_diff(
-			list(cds_seqs_dict["excluded"]), 
-			list(cds_seqs_dict["included"]), ngrams = ngrams)))
-
-	else:
-
-		event_entry["included_unique_codon_ngrams"] = "NA"
-		event_entry["excluded_unique_codon_ngrams"] = "NA"
+	event_entry["excluded_unique_codon_ngrams"] = ",".join(sorted(splice_lib.codon_set_diff(
+		list(cds_seqs_dict["excluded"]), 
+		list(cds_seqs_dict["included"]), ngrams = ngrams)))
 
 
 

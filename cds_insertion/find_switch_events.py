@@ -40,7 +40,7 @@ def form_specific_codon_ngrams(
 		ngrams = (1,2)):
 
 
-	cds_seqs_dict = {"included": "NA", "excluded": "NA"}
+	cds_seqs_dict = {"included": set(), "excluded": set()}
 
 	for form in ["included", "excluded"]:
 
@@ -48,7 +48,7 @@ def form_specific_codon_ngrams(
 
 			for cds, cds_entry in standard_transcript_dict[transcript]["CDS"].iteritems():
 
-				cds_seqs_dict.setdefault(form, set()).add(cds_entry["cds_seq"])
+				cds_seqs_dict[form].add(cds_entry["cds_seq"])
 
 	inc = ",".join(sorted(splice_lib.codon_set_diff(
 		list(cds_seqs_dict["included"]), 

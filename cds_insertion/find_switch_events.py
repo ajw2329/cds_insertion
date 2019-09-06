@@ -50,13 +50,18 @@ def form_specific_codon_ngrams(
 
 				cds_seqs_dict[form].add(cds_entry["cds_seq"])
 
-	inc = ",".join(sorted(splice_lib.codon_set_diff(
-		list(cds_seqs_dict["included"]), 
-		list(cds_seqs_dict["excluded"]), ngrams = ngrams)))
+	inc = ""
+	exc = ""
 
-	exc = ",".join(sorted(splice_lib.codon_set_diff(
-		list(cds_seqs_dict["excluded"]), 
-		list(cds_seqs_dict["included"]), ngrams = ngrams)))
+	if cds_seqs_dict["included"] and cds_seqs_dict["excluded"]:
+
+		inc = ",".join(sorted(splice_lib.codon_set_diff(
+			list(cds_seqs_dict["included"]), 
+			list(cds_seqs_dict["excluded"]), ngrams = ngrams)))
+
+		exc = ",".join(sorted(splice_lib.codon_set_diff(
+			list(cds_seqs_dict["excluded"]), 
+			list(cds_seqs_dict["included"]), ngrams = ngrams)))
 
 	event_entry["included_unique_codon_ngrams"] = inc if inc != "" else "NA"
 

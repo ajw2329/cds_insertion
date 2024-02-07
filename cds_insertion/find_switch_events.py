@@ -46,7 +46,7 @@ def form_specific_codon_ngrams(
 
 		for transcript in event_entry[form + "_form_transcripts"]:
 
-			for cds, cds_entry in standard_transcript_dict[transcript]["CDS"].iteritems():
+			for cds, cds_entry in standard_transcript_dict[transcript]["CDS"].items():
 
 				cds_seqs_dict[form].add(cds_entry["cds_seq"])
 
@@ -79,9 +79,10 @@ def call_ptc_overlap(
 
 	for transcript in event_entry[form + "_form_transcripts"]:
 
-		for cds, cds_entry in standard_transcript_dict[transcript]["CDS"].iteritems():
+		for cds, cds_entry in standard_transcript_dict[transcript]["CDS"].items():
+			max_dist = max([x for x in cds_entry["downstream_PTC_junction_distances"] if not isinstance(x, str)], default=0)
 
-			if max(cds_entry["downstream_PTC_junction_distances"]) >= ptc_distance_threshold:
+			if max_dist >= ptc_distance_threshold:
 
 				if (splice_lib.position_contained(event_entry[form + "_alt_regions"], 
 												  cds_entry["stop_codon"][0][0])[0] or 
@@ -113,13 +114,10 @@ def nmd_status(
 		ptc_distance_threshold = 55):
 
 
-	property_dict = {"included": {"always_nmd": [],
-								  "sometimes_nmd": []},
-					 "excluded": {"always_nmd": [],
-					 			  "sometimes_nmd": []}}
+	property_dict = {"included": {"always_nmd": [], "sometimes_nmd": []},
+					 "excluded": {"always_nmd": [], "sometimes_nmd": []}}
 
 	for form in [ "included", "excluded" ]:
-
 		for transcript in event_entry[form + "_form_transcripts"]:
 
 			property_dict[form]["always_nmd"].append(
@@ -127,19 +125,16 @@ def nmd_status(
 			property_dict[form]["sometimes_nmd"].append(
 				string_bool(standard_transcript_dict[transcript]["sometimes_nmd"]))
 
-
 	included_always_nmd = property_dict["included"]["always_nmd"]
 	included_sometimes_nmd = property_dict["included"]["sometimes_nmd"]
 	excluded_always_nmd = property_dict["excluded"]["always_nmd"]
 	excluded_sometimes_nmd = property_dict["excluded"]["sometimes_nmd"]
-
 
 	included_nmd_status = "never"
 	included_ptc_overlap = "NA"
 
 	excluded_nmd_status = "never"
 	excluded_ptc_overlap = "NA"
-
 
 	all_inc = all(included_always_nmd)
 	all_exc = all(excluded_always_nmd)
@@ -152,11 +147,10 @@ def nmd_status(
 	if all_inc and nz_inc:
 
 		included_nmd_status = "always"
-		included_ptc_overlap = call_ptc_overlap(
-			event_entry,
-			"included",
-			standard_transcript_dict,
-			ptc_distance_threshold)
+		included_ptc_overlap = call_ptc_overlap(event_entry,
+												"included",
+												standard_transcript_dict,
+												ptc_distance_threshold)
 
 	elif some_inc:
 
@@ -166,9 +160,6 @@ def nmd_status(
 			"included",
 			standard_transcript_dict,
 			ptc_distance_threshold)		
-
-
-
 
 	if all_exc and nz_exc:
 
@@ -442,7 +433,7 @@ def feature_overlap(event_entry, standard_transcript_dict):
 
 			for transcript in event_entry[form + "_form_transcripts"]:
 
-				for cds_entry in standard_transcript_dict[transcript]["CDS"].itervalues():
+				for cds_entry in standard_transcript_dict[transcript]["CDS"].values():
 
 					if splice_lib.exon_has_overlap(cds_entry["exons"], alt_region):
 
@@ -474,16 +465,16 @@ def feature_overlap(event_entry, standard_transcript_dict):
 
 	### handle case for empty set
 
-	for form, form_entry in feature_overlap_dict.iteritems():
+	for form, form_entry in feature_overlap_dict.items():
 
 		if len(form_entry) == 0:
 
 			form_entry.add("NA")
 
 
-	for form, form_entry in feature_overlap_boolean_dict.iteritems():
+	for form, form_entry in feature_overlap_boolean_dict.items():
 
-		for feature, feature_entry in form_entry.iteritems():
+		for feature, feature_entry in form_entry.items():
 
 			if len(feature_entry) == 0: ## because any([]) evaluates to True
 
@@ -573,8 +564,8 @@ def check_process_property(property_source,
 	if property_source != "NA":
 
 		property_target.extend(
-			map(int,
-				property_source.split(",")))
+			list(map(int,
+				property_source.split(","))))
 
 	else:
 
@@ -612,13 +603,13 @@ def summarize_properties(form_properties,
 
 	summarized_properties = {}
 
-	for form, form_entry in form_properties.iteritems():
+	for form, form_entry in form_properties.items():
 
 		summarized_properties[form] = {}
 
 		for prop in properties_to_be_processed:
 
-			prop_sorted = sorted(set(form_entry[prop])) # returns a list since sets are unsorted
+			prop_sorted = list(set(form_entry[prop])) # returns a list since sets are unsorted
 
 			all_prop = ",".join(map(str, prop_sorted))
 			no_na_prop = set([i for i in prop_sorted if i != "NA"])
@@ -642,7 +633,7 @@ def isoform_property_diffs(summarized_properties):
 
 	isoform_property_diffs_dict = {}
 
-	for prop, prop_entry in summarized_properties["included"].iteritems():
+	for prop, prop_entry in summarized_properties["included"].items():
 
 		if "mean" in prop:
 
@@ -721,7 +712,7 @@ def get_form_properties(event_entry,
 def event_statuses(standard_event_dict, 
 				   standard_transcript_dict):
 
-	for event, event_entry in standard_event_dict.iteritems():
+	for event, event_entry in standard_event_dict.items():
 
 		if (len(event_entry["included_form_transcripts"]) == 0 or 
 			len(event_entry["excluded_form_transcripts"]) == 0):
@@ -841,7 +832,7 @@ def output_table(standard_event_dict, outdir):
 
 	output_table.write("\t".join(header_content) + "\n")
 
-	for event, event_entry in standard_event_dict.iteritems():
+	for event, event_entry in standard_event_dict.items():
 
 		nmd_entry_content = [event,
 						 	 event_entry["event_type"],
@@ -987,21 +978,21 @@ def main(args, standard_transcript_dict = None, standard_event_dict = None):
 
 	if standard_event_dict is None and event_gtf is not None:
 
-		print "Importing event data"
+		print("Importing event data")
 
 		standard_event_dict = splice_lib.generate_standard_event_dict(event_gtf)
 
-		print "Event data imported.  Now adding transcripts to event dict via IOE file"
+		print("Event data imported.  Now adding transcripts to event dict via IOE file")
 
 		splice_lib.add_transcripts_to_event_dict(ioe_files, standard_event_dict)
 
-		print "Transcripts added to event dict.  Now finding exons unique to either form"
+		print("Transcripts added to event dict.  Now finding exons unique to either form")
 
 		splice_lib.find_exons_unique_to_form(standard_event_dict)
 
-		print "Form-specific exons identified.  Now extracting alternative regions"
+		print("Form-specific exons identified.  Now extracting alternative regions")
 
-		for event, event_entry in standard_event_dict.iteritems():
+		for event, event_entry in standard_event_dict.items():
 
 			(
 			 event_entry["included_alt_regions"], 
@@ -1021,9 +1012,9 @@ def main(args, standard_transcript_dict = None, standard_event_dict = None):
 
 	if standard_transcript_dict is None and transcript_dict_pkl is not None:
 
-		print "Importing transcript data"
+		print("Importing transcript data")
 
-		import cPickle as pkl
+		import pickle as pkl
 
 		standard_transcript_dict = pkl.load(open(transcript_dict_pkl, "rb"))
 
@@ -1038,7 +1029,7 @@ def main(args, standard_transcript_dict = None, standard_event_dict = None):
 		sys.exit("Output directory required if suppress output not " +
 			     "set in find_switch_events.py")
 
-	print "Establishing event statuses"
+	print("Establishing event statuses")
 
 	event_statuses(standard_event_dict, standard_transcript_dict)
 	output_table(standard_event_dict, outdir)

@@ -8,7 +8,7 @@ import copy
 import re
 import subprocess
 import glob
-import cPickle as pkl
+import pickle as pkl
 import time
 from datetime import datetime
 
@@ -54,7 +54,7 @@ def make_cds_dict(transcript_cds_dict):
 
 	cds_dict = {}
 		
-	for transcript, transcript_entry in transcript_cds_dict.iteritems():
+	for transcript, transcript_entry in transcript_cds_dict.items():
 
 		strand = transcript_entry["strand"]
 		chrom = transcript_entry["chrom"]
@@ -171,7 +171,7 @@ def call_bedtools_intersect(outdir,
 							    stderr = subprocess.STDOUT)
 
 	except subprocess.CalledProcessError as e:
-		print e.output
+		print(e.output)
 		sys.exit("bedtools intersect failed in " +
 				 "'run_bedtools_intersect' of cds_insertion.py. Exiting . . . ")
 
@@ -239,14 +239,11 @@ def assign_cds_to_transcript(cds,
 
 	transcript_start = int(transcript_boundaries[0])
 	transcript_end = int(transcript_boundaries[1])
-
+	
 	cds_start = int(cds["cds_start"])
 	cds_end = int(cds["cds_end"])
-
 	transcript_seq = full_transcript_dict[transcript]["sequence"]
-
 	transcript_len = len(transcript_seq)
-
 
 	start_is_contained, start_containing_exon = splice_lib.position_contained(
 		transcript_exons, 
@@ -395,7 +392,7 @@ def add_cds_to_transcript_dict(strand,
 					 cds_utr_exons[1] 
 					 for i in j]
 
-	flat_cds_list = map(str, flat_cds_list)
+	flat_cds_list = list(map(str, flat_cds_list))
 
 	cds_key = (chrom + 
 			  "_" + 
@@ -490,10 +487,10 @@ def add_cds_to_transcript_dict(strand,
 		if PTC_status[0] != "no_PTC" and PTC_status[0] != None:
 			if len(junction_contained_three_utr_exons) == 0:
 
-				print "WHOOPS!!!!!!!!!!!!!!!!!", three_utr_exons
+				print("WHOOPS!!!!!!!!!!!!!!!!!", three_utr_exons)
 
 			if len(three_utr_exons) == 1:
-				print "ACKACKACKACK", three_utr_exons
+				print("ACKACKACKACK", three_utr_exons)
 
 	else: ##This is necessary in case translate ORF from another annotated (also from the same gene) resulted in addition of this same CDS (but without awareness of its annotated status)
 		transcript_entry["CDS"][cds_key]["annotated"] = annotated
@@ -565,9 +562,9 @@ def is_PTC(
 			return exon_distance
 
 		else:
-			print "PTC Error ... printing transcript exons ..."
-			print stop_codon_end
-			print is_PTC_transcript_exons
+			print("PTC Error ... printing transcript exons ...")
+			print(stop_codon_end)
+			print(is_PTC_transcript_exons)
 			sys.exit("Error: stop codon not contained in spliced transcript")
 
 
@@ -578,7 +575,7 @@ def output_cds_inserted_gtf(full_transcript_dict, outdir):
 	nmd_gtf_output = open(outdir + "/cds_inserted_ptc.gtf", 'w')
 	nonstop_gtf_output = open(outdir + "/cds_inserted_nonstop.gtf", 'w')
 
-	for transcript, transcript_entry in full_transcript_dict.iteritems():
+	for transcript, transcript_entry in full_transcript_dict.items():
 
 		chrom = re.sub("&","_",transcript_entry["chrom"][:])
 		source = "cds_insertion"
@@ -593,7 +590,7 @@ def output_cds_inserted_gtf(full_transcript_dict, outdir):
 
 		counter = 1
 		
-		for cds, cds_entry in transcript_entry["CDS"].iteritems():
+		for cds, cds_entry in transcript_entry["CDS"].items():
 
 			nmd = False
 
@@ -690,7 +687,7 @@ def output_cds_inserted_gtf(full_transcript_dict, outdir):
 		counter = 1
 
 
-		for cds, cds_entry in transcript_entry["nonstop"].iteritems():
+		for cds, cds_entry in transcript_entry["nonstop"].items():
 
 			transcript_id = (transcript + 
 							"_nonstop_" + 
@@ -753,7 +750,7 @@ def characterize_transcripts_as_nmd_nsd(full_transcript_dict,
 										ptc_distance_nmd_threshold):
 
 
-	for transcript, transcript_entry in full_transcript_dict.iteritems():
+	for transcript, transcript_entry in full_transcript_dict.items():
 
 		try:
 			normal_cds_count = len(transcript_entry["CDS"])
@@ -781,7 +778,7 @@ def characterize_transcripts_as_nmd_nsd(full_transcript_dict,
 
 
 
-		for cds, cds_entry in transcript_entry["CDS"].iteritems():
+		for cds, cds_entry in transcript_entry["CDS"].items():
 
 			if cds_entry["PTC_exon"] != "no_PTC":
 
@@ -891,7 +888,7 @@ def output_transcript_table(full_transcript_dict,
 								  "three_utr_junction_counts"]) + "\n")
 
 
-	for transcript, transcript_entry in full_transcript_dict.iteritems():
+	for transcript, transcript_entry in full_transcript_dict.items():
 
 		output_table.write("\t".join([transcript_entry["gene"], 
 									  transcript, 
@@ -922,9 +919,9 @@ def output_aa_sequence(full_transcript_dict,
 								  "cds_id", 
 								  "aa_seq"]) + "\n")
 
-	for transcript, transcript_entry in full_transcript_dict.iteritems():
+	for transcript, transcript_entry in full_transcript_dict.items():
 
-		for cds, cds_entry in transcript_entry["CDS"].iteritems():
+		for cds, cds_entry in transcript_entry["CDS"].items():
 
 			output_table.write("\t".join([transcript_entry["gene"], 
 										  transcript,
@@ -1014,7 +1011,7 @@ def make_bb_file(prefix,
 								stderr = subprocess.STDOUT)
 
 	except subprocess.CalledProcessError as e:
-		print e.output
+		print(e.output)
 		sys.exit("Kent tool failed in 'make_bb_file' " +
 			     "of cds_insertion.py. Exiting . . . ")
 
@@ -1023,12 +1020,12 @@ def output_cds_utr_exons(full_transcript_dict, outdir):
 
 	output_bed = open(outdir + "/all_cds_utr_exons.bed", 'w')
 
-	for transcript, transcript_entry in full_transcript_dict.iteritems():
+	for transcript, transcript_entry in full_transcript_dict.items():
 
 		chrom = transcript_entry["chrom"]
 		strand = transcript_entry["strand"]
 
-		for cds, cds_entry in transcript_entry["CDS"].iteritems():
+		for cds, cds_entry in transcript_entry["CDS"].items():
 
 			for exon in cds_entry["exons"]:
 
@@ -1070,10 +1067,10 @@ def main(args):
 
 	start_time = time.time()
 
-	print ("{0}: {1} seconds elapsed. Starting cds_insertion. " +
+	print(("{0}: {1} seconds elapsed. Starting cds_insertion. " +
 		   "Now parsing arguments."
 		   ).format(str(datetime.now().replace(microsecond = 0)), 
-		   			str(round(time.time() - start_time, 1)))
+		   			str(round(time.time() - start_time, 1))))
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--transcript_gtf", 
@@ -1166,20 +1163,20 @@ def main(args):
 
 	subprocess.call("mkdir -p " + output_directory, shell = True)
 
-	print ("{0}: {1} seconds elapsed. Arguments parsed. " + 
+	print(("{0}: {1} seconds elapsed. Arguments parsed. " + 
 		   "Now importing (unannotated) transcript GTF file."
 		   ).format(str(datetime.now().replace(microsecond = 0)), 
-		            str(round(time.time() - start_time, 1)))
+		            str(round(time.time() - start_time, 1))))
 
 	full_transcript_dict = splice_lib.generate_standard_transcript_dict(transcript_gtf)
 	splice_lib.sort_transcript_dict_exons(full_transcript_dict)
 	splice_lib.add_junctions_to_transcript_dict(full_transcript_dict)
 
 
-	print ("{0}: {1} seconds elapsed. Transcript GTF file imported. " + 
+	print(("{0}: {1} seconds elapsed. Transcript GTF file imported. " + 
 	   "Now importing annotated transcript GTF file."
 	   ).format(str(datetime.now().replace(microsecond = 0)), 
-	            str(round(time.time() - start_time, 1)))
+	            str(round(time.time() - start_time, 1))))
 
 	if CCDS == True:
 		transcript_cds_dict = splice_lib.generate_standard_transcript_dict(annotation_gtf, ccds = CCDS, feature = "CDS")
@@ -1191,110 +1188,110 @@ def main(args):
 		splice_lib.add_junctions_to_transcript_dict(transcript_cds_dict)
 
 
-	print ("{0}: {1} seconds elapsed. Annotated transcript GTF file imported. " + 
+	print(("{0}: {1} seconds elapsed. Annotated transcript GTF file imported. " + 
 	   "Now importing transcript sequences."
 	   ).format(str(datetime.now().replace(microsecond = 0)), 
-	            str(round(time.time() - start_time, 1)))
+	            str(round(time.time() - start_time, 1))))
 
 	add_sequence_to_transcript_dict(transcript_fasta, full_transcript_dict)
 
 
-	print ("{0}: {1} seconds elapsed. Transcript sequences imported. " + 
+	print(("{0}: {1} seconds elapsed. Transcript sequences imported. " + 
 	   "Indexing annotated transcripts by junction."
 	   ).format(str(datetime.now().replace(microsecond = 0)), 
-	            str(round(time.time() - start_time, 1)))
+	            str(round(time.time() - start_time, 1))))
 
 
 	junction_transcript_dict = splice_lib.index_transcripts_by_junctions(full_transcript_dict)
 
 
 
-	print ("{0}: {1} seconds elapsed. Transcripts indexed by junction. " + 
+	print(("{0}: {1} seconds elapsed. Transcripts indexed by junction. " + 
 	   "Now generating CDS dict."
 	   ).format(str(datetime.now().replace(microsecond = 0)), 
-	            str(round(time.time() - start_time, 1)))
+	            str(round(time.time() - start_time, 1))))
 
 
 	input_cds_dict = make_cds_dict(transcript_cds_dict)
 
 
 
-	print ("{0}: {1} seconds elapsed. CDS dict generated. " + 
+	print(("{0}: {1} seconds elapsed. CDS dict generated. " + 
 	   "Now generating start coding bed file."
 	   ).format(str(datetime.now().replace(microsecond = 0)), 
-	            str(round(time.time() - start_time, 1)))
+	            str(round(time.time() - start_time, 1))))
 
 
 	generate_start_codon_bedfile(input_cds_dict, output_directory)
 
 
-	print ("{0}: {1} seconds elapsed. Start codon bedfile generated. " + 
+	print(("{0}: {1} seconds elapsed. Start codon bedfile generated. " + 
 	   "Now generating exon bed file."
 	   ).format(str(datetime.now().replace(microsecond = 0)), 
-	            str(round(time.time() - start_time, 1)))
+	            str(round(time.time() - start_time, 1))))
 
 
 	generate_exon_bedfile(full_transcript_dict, output_directory)
 
 
-	print ("{0}: {1} seconds elapsed. Exon bed file generated. " + 
+	print(("{0}: {1} seconds elapsed. Exon bed file generated. " + 
 	   "Now running bedtools intersect to identify exon-overlapping start codons."
 	   ).format(str(datetime.now().replace(microsecond = 0)), 
-	            str(round(time.time() - start_time, 1)))
+	            str(round(time.time() - start_time, 1))))
 
 
 	call_bedtools_intersect(output_directory, bedtools_path)
 
 
-	print ("{0}: {1} seconds elapsed. Start codon overlaps identified. " + 
+	print(("{0}: {1} seconds elapsed. Start codon overlaps identified. " + 
 	   "Now attempting in silico translation."
 	   ).format(str(datetime.now().replace(microsecond = 0)), 
-	            str(round(time.time() - start_time, 1)))
+	            str(round(time.time() - start_time, 1))))
 
 
 	seek_cds_matches(output_directory, full_transcript_dict, input_cds_dict)
 
 
-	print ("{0}: {1} seconds elapsed. CDS identification complete. " + 
+	print(("{0}: {1} seconds elapsed. CDS identification complete. " + 
 	   "Now assessing putative NMD, NSD status."
 	   ).format(str(datetime.now().replace(microsecond = 0)), 
-	            str(round(time.time() - start_time, 1)))
+	            str(round(time.time() - start_time, 1))))
 
 
 	characterize_transcripts_as_nmd_nsd(full_transcript_dict, ptc_distance_nmd_threshold = ptc_dist)
 
 
-	print ("{0}: {1} seconds elapsed. NMD, NSD status assessment complete. " + 
+	print(("{0}: {1} seconds elapsed. NMD, NSD status assessment complete. " + 
 	   "Now writing CDS-inserted GTF."
 	   ).format(str(datetime.now().replace(microsecond = 0)), 
-	            str(round(time.time() - start_time, 1)))
+	            str(round(time.time() - start_time, 1))))
 
 
 	output_cds_inserted_gtf(full_transcript_dict, output_directory)
 
 
-	print ("{0}: {1} seconds elapsed. CDS-inserted GTF output complete. " + 
+	print(("{0}: {1} seconds elapsed. CDS-inserted GTF output complete. " + 
 	   "Now writing transcript characteristics table."
 	   ).format(str(datetime.now().replace(microsecond = 0)), 
-	            str(round(time.time() - start_time, 1)))
+	            str(round(time.time() - start_time, 1))))
 
 
 	output_transcript_table(full_transcript_dict, output_directory)
 
 
-	print ("{0}: {1} seconds elapsed. Transcript characteristics table output " + 
+	print(("{0}: {1} seconds elapsed. Transcript characteristics table output " + 
 	   "complete. Now writing putative protein sequences."
 	   ).format(str(datetime.now().replace(microsecond = 0)), 
-	            str(round(time.time() - start_time, 1)))
+	            str(round(time.time() - start_time, 1))))
 
 
 	output_aa_sequence(full_transcript_dict, output_directory)
 
 
-	print ("{0}: {1} seconds elapsed. Putative protein sequence output " + 
+	print(("{0}: {1} seconds elapsed. Putative protein sequence output " + 
 	   "complete. Now writing CDS and UTR exon bed files."
 	   ).format(str(datetime.now().replace(microsecond = 0)), 
-	            str(round(time.time() - start_time, 1)))
+	            str(round(time.time() - start_time, 1))))
 
 
 	output_cds_utr_exons(full_transcript_dict, output_directory)
@@ -1303,16 +1300,16 @@ def main(args):
 	if make_bigBed:
 
 
-		print ("{0}: {1} seconds elapsed. CDS and UTR bed files written. " + 
+		print(("{0}: {1} seconds elapsed. CDS and UTR bed files written. " + 
 		   "Now creating bigGenePred files."
 		   ).format(str(datetime.now().replace(microsecond = 0)), 
-		            str(round(time.time() - start_time, 1)))
+		            str(round(time.time() - start_time, 1))))
 
 
 		if chrNameLength_path is None or bigGenePred_as_path is None:
-			print ("Both --chrNameLength_path and " + 
+			print(("Both --chrNameLength_path and " + 
 				   "--bigGenePred_as_path must be set " + 
-				   "in order to generate bigBed file.  Skipping . . . ")
+				   "in order to generate bigBed file.  Skipping . . . "))
 		else:
 
 			make_bb_file("cds_inserted_no_ptc", 
@@ -1340,29 +1337,29 @@ def main(args):
 					 	 bedToBigBed_exe = bedToBigBed_path)
 
 
-		print ("{0}: {1} seconds elapsed. bigGenePred files written. " + 
+		print(("{0}: {1} seconds elapsed. bigGenePred files written. " + 
 	   "Now writing transcript dict pkl."
 	   ).format(str(datetime.now().replace(microsecond = 0)), 
-	            str(round(time.time() - start_time, 1)))
+	            str(round(time.time() - start_time, 1))))
 
 	else:
 
-		print ("{0}: {1} seconds elapsed. CDS and UTR bed files written. " + 
+		print(("{0}: {1} seconds elapsed. CDS and UTR bed files written. " + 
 		   "Now writing transcript dict pkl."
 		   ).format(str(datetime.now().replace(microsecond = 0)), 
-		            str(round(time.time() - start_time, 1)))
+		            str(round(time.time() - start_time, 1))))
 
 
 	pkl.dump(full_transcript_dict, 
 			 open(output_directory + "/cds_insertion_transcript_dict.pkl", "wb"))
 
 
-	print ("{0}: {1} seconds elapsed. Transcript dict pkl written. " + 
+	print(("{0}: {1} seconds elapsed. Transcript dict pkl written. " + 
 	   "cds_insertion complete."
 	   ).format(str(datetime.now().replace(microsecond = 0)), 
-	            str(round(time.time() - start_time, 1)))
+	            str(round(time.time() - start_time, 1))))
 
-	print "Ceci n'est pas un algorithme bioinformatique."
+	print("Ceci n'est pas un algorithme bioinformatique.")
 
 
 	return full_transcript_dict

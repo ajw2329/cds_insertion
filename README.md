@@ -12,14 +12,14 @@ cds\_insertion is intended to add CDS features to transcriptome annotations lack
 
 ## Basic Requirements
 
-`python 2.7`  
+`python 3`  
 `Bedtools v>=2.27`    
-`splice_lib` (github.com/ajw2329/splice_lib/ - install using `python2.7 setup.py install`)  
+`splice_lib` (github.com/ajw2329/splice_lib/ - install using `python setup.py install`)  
 
 ## Basic usage:
 
 ```
-python2.7 /path/to/cds_insertion.py --transcript_gtf /path/to/raw/transcriptome.gtf --transcript_fasta /path/to/raw/transcriptome.fa --annotation_gtf /path/to/cds_annotated_transcriptome.gtf --outdir /path/to/output/`
+python /path/to/cds_insertion.py --transcript_gtf /path/to/raw/transcriptome.gtf --transcript_fasta /path/to/raw/transcriptome.fa --annotation_gtf /path/to/cds_annotated_transcriptome.gtf --outdir /path/to/output/`
 ```
 
 Note that this assumes that bedtools is in your PATH. The location of the bedtools executable can be made explicit by adding `--bedtools\_path /path/to/bedtools`
@@ -29,7 +29,7 @@ Note that this assumes that bedtools is in your PATH. The location of the bedtoo
 The `--CCDS` flag will require that annotation CDS entries contain the text "CCDS".  This is intended for use with a GENCODE annotation GTF, and will have the affect of using only start codons from consensus CDS features (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5753299/).
 
 ```
-python2.7 /path/to/cds_insertion.py --transcript_gtf /path/to/raw/transcriptome.gtf --transcript_fasta /path/to/raw/transcriptome.fa --annotation_gtf /path/to/cds_annotated_transcriptome.gtf --outdir /path/to/output/ --CCDS`
+python /path/to/cds_insertion.py --transcript_gtf /path/to/raw/transcriptome.gtf --transcript_fasta /path/to/raw/transcriptome.fa --annotation_gtf /path/to/cds_annotated_transcriptome.gtf --outdir /path/to/output/ --CCDS`
 ```
 
 ## Primary output files
@@ -99,7 +99,7 @@ By default cds\_insertion will output new GTF files with CDS entries, but for so
 The bigGenePred generation can be achieved (alongside the normal output) as follows:
 
 ```
-python2.7 /path/to/cds_insertion.py --transcript_gtf /path/to/raw/transcriptome.gtf --transcript_fasta /path/to/raw/transcriptome.fa --annotation_gtf /path/to/cds_annotated_transcriptome.gtf --outdir /path/to/output/ --make_bigBed --bigGenePred_as_path /path/to/bigGenePred.as --chrNameLength_path /path/to/chrNameLength.txt`
+python /path/to/cds_insertion.py --transcript_gtf /path/to/raw/transcriptome.gtf --transcript_fasta /path/to/raw/transcriptome.fa --annotation_gtf /path/to/cds_annotated_transcriptome.gtf --outdir /path/to/output/ --make_bigBed --bigGenePred_as_path /path/to/bigGenePred.as --chrNameLength_path /path/to/chrNameLength.txt`
 ```
 
 Note that paths to the UCSC executables can be made explicit using `--gtfToGenePred_path` and equivalent for the rest.
@@ -162,7 +162,7 @@ python2.7
 ## Basic usage
 
 ```
-python2.7 find_switch_events.py --outdir /path/to/output_dir/ --ioe_file /path/to/splice_lib_events.ioe --event_gtf /path/to/splice_lib_events.gtf --transcript_dict_pkl /path/to/cds_insertion_transcript_dict.pkl
+python find_switch_events.py --outdir /path/to/output_dir/ --ioe_file /path/to/splice_lib_events.ioe --event_gtf /path/to/splice_lib_events.gtf --transcript_dict_pkl /path/to/cds_insertion_transcript_dict.pkl
 ```
 
 ## Help statement
@@ -192,12 +192,12 @@ generateIOE is a script that can be used to generate an event ioe file from an e
 
 ## Basic requirements
 
-python2.7
+python3
 
 ## Basic usage
 
 ```
-python2.7 generateIOE.py --transcript_gtf /path/to/transcriptome.gtf --event_gtf /path/to/splice_lib_events.gtf --outdir /path/to/output_dir/
+python generateIOE.py --transcript_gtf /path/to/transcriptome.gtf --event_gtf /path/to/splice_lib_events.gtf --outdir /path/to/output_dir/
 ``` 
 
 ## Primary output files
